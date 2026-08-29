@@ -10,12 +10,14 @@ export function signal(initialValue, options = {}) {
 
     if (existing) {
       if (existing.kind !== 'signal') {
-        throw new Error(`Ordre des états local instable à la position ${slot}`)
+        throw new Error(`Component state order changed at slot ${slot}`)
       }
       return existing.value
     }
 
-    const value = createSignal(initialValue, options)
+    const value = renderState.stateScope
+      ? renderState.stateScope.run(() => createSignal(initialValue, options))
+      : createSignal(initialValue, options)
     renderState.stateSlots[slot] = { kind: 'signal', value }
     return value
   }
@@ -32,7 +34,7 @@ function createSignal(initialValue, options) {
   const api = {
     get value() {
       if (disposed) {
-        throw new Error('Impossible de lire un signal détruit')
+        throw new Error('Cannot read a disposed signal')
       }
 
       trackSource(source)
@@ -41,7 +43,7 @@ function createSignal(initialValue, options) {
 
     set value(nextValue) {
       if (disposed) {
-        throw new Error('Impossible d’écrire dans un signal détruit')
+        throw new Error('Cannot write to a disposed signal')
       }
 
       if (equals(value, nextValue)) {
@@ -64,7 +66,7 @@ function createSignal(initialValue, options) {
 
     update(updater) {
       if (typeof updater !== 'function') {
-        throw new TypeError('signal.update() attend une fonction')
+        throw new TypeError('signal.update() expects a function')
       }
 
       api.value = updater(value)
@@ -73,7 +75,7 @@ function createSignal(initialValue, options) {
 
     peek() {
       if (disposed) {
-        throw new Error('Impossible de lire un signal détruit')
+        throw new Error('Cannot read a disposed signal')
       }
 
       return value

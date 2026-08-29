@@ -1,8 +1,19 @@
 {
   "name": "create-matrix-app",
-  "version": "0.0.1",
+  "version": "0.1.0-alpha.0",
   "description": "Create a Matrix app with Vite",
   "type": "module",
+  "license": "MIT",
+  "author": "Micky Balladelli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MickyBalladelli/Matrix.git",
+    "directory": "create-matrix-app"
+  },
+  "homepage": "https://github.com/MickyBalladelli/Matrix#readme",
+  "bugs": {
+    "url": "https://github.com/MickyBalladelli/Matrix/issues"
+  },
   "bin": {
     "create-matrix-app": "./index.mjs"
   },
@@ -12,6 +23,9 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

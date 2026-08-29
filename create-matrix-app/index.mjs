@@ -38,7 +38,7 @@ const packageJson = JSON.parse(await readFile(packagePath, 'utf8'))
 packageJson.name = packageName
 
 if (await isLocalMatrixProject(targetDirectory)) {
-  packageJson.dependencies.matrix = `file:${relative(targetDirectory, matrixDirectory) || '.'}`
+  packageJson.dependencies['@mickyballadelli/matrix'] = `file:${relative(targetDirectory, matrixDirectory) || '.'}`
 }
 
 await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`)
@@ -97,7 +97,7 @@ async function isLocalMatrixProject(directory) {
 
   try {
     const matrixPackage = JSON.parse(await readFile(resolve(matrixDirectory, 'package.json'), 'utf8'))
-    return matrixPackage.name === 'matrix'
+    return matrixPackage.name === '@mickyballadelli/matrix'
   } catch {
     return false
   }

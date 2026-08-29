@@ -38,7 +38,7 @@ export function notifySource(source, value, previousValue) {
 
 export function subscribeSource(source, listener) {
   if (typeof listener !== 'function') {
-    throw new TypeError('signal.subscribe() attend une fonction')
+    throw new TypeError('signal.subscribe() expects a function')
   }
 
   source.listeners.add(listener)

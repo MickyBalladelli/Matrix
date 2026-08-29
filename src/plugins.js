@@ -8,7 +8,7 @@ const extensionPoints = new Map([
 function getPoint(name) {
   const point = extensionPoints.get(name)
   if (!point) {
-    throw new TypeError(`Point d’extension inconnu : ${name}`)
+    throw new TypeError(`Unknown plugin extension point: ${name}`)
   }
   return point
 }
@@ -26,14 +26,14 @@ export function emitPlugin(name, event) {
 
 export function usePlugin(plugin) {
   if (!plugin || typeof plugin.install !== 'function') {
-    throw new TypeError('usePlugin() attend un plugin avec install(api)')
+    throw new TypeError('usePlugin() expects a plugin with install(api)')
   }
 
   const registrations = []
   const api = {
     on(name, hook) {
       if (typeof hook !== 'function') {
-        throw new TypeError('Un hook de plugin doit être une fonction')
+        throw new TypeError('A plugin hook must be a function')
       }
 
       const point = getPoint(name)

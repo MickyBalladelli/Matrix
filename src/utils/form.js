@@ -61,7 +61,7 @@ export function bindInput(element, source, scope) {
   const debounce = Number(binding?.debounce ?? 0)
 
   if (!isReactiveValue(target) || target.kind !== 'signal' || typeof target.set !== 'function') {
-    throw new TypeError('use:bind attend un signal modifiable')
+    throw new TypeError('use:bind expects a writable signal')
   }
 
   let focused = false

@@ -54,6 +54,7 @@ export function onCleanup(cleanup: () => void): () => void
 export interface TemplateResult {
   readonly strings: TemplateStringsArray
   readonly values: unknown[]
+  readonly key?: string | number
 }
 
 export function html(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult
@@ -70,6 +71,7 @@ export function delegate(element: Element, event: string, selector: string, hand
 
 export interface ComponentResult {
   readonly props: Record<string, unknown>
+  readonly key?: string | number
 }
 
 export function component<Props extends Record<string, unknown>>(
@@ -100,8 +102,11 @@ export function utilityCss(): StyleDefinition
 export function disposeStyle(definition: StyleDefinition, document?: Document): boolean
 
 export interface MatrixPluginApi {
-  on(point: 'renderer' | 'scheduler' | 'logger' | 'style', hook: (event: Record<string, unknown>) => void): () => void
+  on(point: MatrixPluginPoint, hook: (event: MatrixPluginEvent) => void): () => void
 }
+
+export type MatrixPluginPoint = 'renderer' | 'scheduler' | 'logger' | 'style'
+export type MatrixPluginEvent = Record<string, unknown> & { type?: string }
 
 export interface MatrixPlugin {
   install(api: MatrixPluginApi): void | (() => void)
@@ -112,23 +117,39 @@ export function usePlugin(plugin: MatrixPlugin): () => void
 export interface RouteDefinition {
   path: string
   view?: (props: Record<string, unknown>) => unknown
+  redirect?: string | ((context: {
+    route: RouteDefinition & { params: Record<string, string> }
+    path: string
+    search: string
+    hash: string
+  }) => string)
   [key: string]: unknown
+}
+
+export interface NavigationContext {
+  from: (RouteDefinition & { params: Record<string, string> }) | null
+  to: (RouteDefinition & { params: Record<string, string> }) | null
+  path: string
+  search: string
+  hash: string
 }
 
 export interface Router {
   readonly path: Signal<string>
+  readonly search: Signal<string>
+  readonly hash: Signal<string>
   readonly current: Computed<(RouteDefinition & { params: Record<string, string> }) | null>
   readonly routes: RouteDefinition[]
   start(): () => void
   stop(): void
-  navigate(path: string, options?: { replace?: boolean }): boolean
-  link(path: string): (event: MouseEvent) => void
+  navigate(path: string, options?: { replace?: boolean; scroll?: boolean }): Promise<boolean>
+  link(path: string): (event: MouseEvent) => Promise<boolean | void>
 }
 
 export function createRouter(routes?: RouteDefinition[], options?: {
   base?: string
-  beforeEach?: (context: { from: unknown; to: unknown; path: string }) => boolean | void
-  afterEach?: (context: { route: unknown; path: string }) => void
+  beforeEach?: (context: NavigationContext) => boolean | void | Promise<boolean | void>
+  afterEach?: (context: NavigationContext & { route: NavigationContext['to'] }) => void | Promise<void>
 }): Router
 export function routerView(router: Router, fallback?: unknown): Computed<unknown>
 
@@ -154,10 +175,10 @@ export interface Resource<T> {
   reload(...args: unknown[]): Promise<T | undefined>
 }
 
-export function resource<T>(loader: (...args: unknown[]) => Promise<T>, options?: {
+export function resource<T, Args extends unknown[] = unknown[]>(loader: (...args: [...Args, AbortSignal?]) => Promise<T>, options?: {
   initialValue?: T
   immediate?: boolean
-  args?: unknown[]
+  args?: Args
 }): Resource<T>
 
 export function setDevtoolsHook(hook?: (event: Record<string, unknown>) => void): void

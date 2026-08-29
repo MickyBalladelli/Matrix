@@ -1,4 +1,4 @@
-import { computed, mount, signal } from 'matrix'
+import { computed, mount, signal } from '@mickyballadelli/matrix'
 
 const count = signal(0)
 const doubled = computed(() => count.value * 2)

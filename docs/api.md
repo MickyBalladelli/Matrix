@@ -32,7 +32,7 @@ Creates a template result. Expressions can be text, a signal, a Computed, a temp
 
 ### JSX runtime
 
-The optional `matrix/jsx-runtime` adapter supports JSX elements, components, fragments, signals and Computeds. Configure Vite's automatic JSX runtime:
+The optional `@mickyballadelli/matrix/jsx-runtime` adapter supports JSX elements, components, fragments, signals and Computeds. Configure Vite's automatic JSX runtime:
 
 ```js
 import { defineConfig } from 'vite'
@@ -40,7 +40,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
-    jsxImportSource: 'matrix'
+    jsxImportSource: '@mickyballadelli/matrix'
   }
 })
 ```
@@ -48,7 +48,7 @@ export default defineConfig({
 Then write JSX in `.jsx` files:
 
 ```jsx
-import { mount, signal } from 'matrix'
+import { mount, signal } from '@mickyballadelli/matrix'
 
 const count = signal(0)
 const App = () => (
@@ -64,9 +64,9 @@ DOM events use `onClick`, `onInput` and similar names. `className` maps to `clas
 
 Mounts a view or component. Returns `{ nodes, unmount() }`. Existing container content is preserved.
 
-### `keyed(items, getKey)`
+### `keyed(items, getKey?)`
 
-Creates a reactive keyed list. Keys must be unique. Items that keep their key are moved instead of recreated.
+Creates a reactive keyed list. Keys must be unique. Items that keep their key are moved instead of recreated. When `getKey` is omitted, Matrix uses a JSX runtime key when present, then the item identity.
 
 ### Directives
 
@@ -114,7 +114,9 @@ stopPlugin()
 
 ## Utilities
 
-- `createRouter(routes, options)` provides `path`, `current`, `start`, `stop`, `navigate` and `link`.
+- `createRouter(routes, options)` provides `path`, `search`, `hash`, `current`, `start`, `stop`, async `navigate` and `link`.
+- `beforeEach` and `afterEach` may be async. `navigate()` resolves to `false` when a guard blocks navigation.
+- A route may define `redirect` as a path or function. Redirects replace history and stop after ten hops.
 - `routerView(router, fallback)` turns the current route into a view.
 - `createForm(initialValues, validators)` provides fields, values, errors, valid, validate and reset.
 - `resource(loader, options)` provides status, data, error, loading and reload.

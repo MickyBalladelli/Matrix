@@ -4,7 +4,15 @@ Matrix is a tiny reactive JavaScript framework. It uses signals, effects and com
 
 ## Getting started
 
-Clone the repository, then import `src/index.js` from an ESM module. Matrix has no runtime dependencies.
+Install the alpha from npm. Matrix is ESM-only and has no runtime dependencies.
+
+```bash
+npm install @mickyballadelli/matrix@next
+```
+
+```js
+import { computed, effect, html, mount, signal } from '@mickyballadelli/matrix'
+```
 
 `npm run build` creates the browser ESM output in `dist/matrix.js`.
 
@@ -34,7 +42,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
-    jsxImportSource: 'matrix'
+    jsxImportSource: '@mickyballadelli/matrix'
   }
 })
 ```
@@ -60,7 +68,7 @@ Open `http://localhost:5173/` in the browser.
 The app imports Matrix as a package and uses JSX:
 
 ```jsx
-import { mount, signal } from 'matrix'
+import { mount, signal } from '@mickyballadelli/matrix'
 
 const count = signal(0)
 const App = () => (
@@ -80,7 +88,7 @@ npm run preview
 ```
 
 ```js
-import { computed, effect, html, mount, signal } from './src/index.js'
+import { computed, effect, html, mount, signal } from '@mickyballadelli/matrix'
 
 const count = signal(0)
 const doubled = computed(() => count.value * 2)
@@ -114,7 +122,7 @@ mount(App, document.querySelector('#app'))
 ## DOM directives
 
 ```js
-import { css, cssVariables, html, signal } from './src/index.js'
+import { css, cssVariables, html, signal } from '@mickyballadelli/matrix'
 
 const color = signal('tomato')
 const card = css`.card { color: var(--card-color) }`
@@ -139,3 +147,5 @@ To delay form writes, use `use:bind=${{ source: email, debounce: 150 }}`.
 ## Status
 
 The project is alpha. The reactive core and DOM renderer are operational. The router, forms, styles and DX tools are intentionally small.
+
+Matrix supports modern ESM browsers. The automated browser target is current Chromium, Firefox, and WebKit. SSR and hydration are not part of this alpha; importing the package on a server is safe, but DOM and router APIs must only be called in a browser.

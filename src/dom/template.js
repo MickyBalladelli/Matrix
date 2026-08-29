@@ -7,7 +7,7 @@ export const TEMPLATE_RESULT = Symbol('matrix.template.result')
 
 export function html(strings, ...values) {
   if (!Array.isArray(strings) || !Array.isArray(strings.raw)) {
-    throw new TypeError('html() doit être utilisé comme template tagué')
+    throw new TypeError('html() must be used as a tagged template')
   }
 
   return {
@@ -43,7 +43,7 @@ function buildTemplateSource(strings) {
     const attributePosition = isAttributePosition(source, literal)
 
     if (!attributePosition && /<\/?[A-Za-z0-9_-]*$/.test(literal)) {
-      throw new Error('Les expressions ne peuvent pas être placées dans un nom de balise')
+      throw new Error('Expressions cannot be used inside a tag name')
     }
 
     const marker = attributePosition

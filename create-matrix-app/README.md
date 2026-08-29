@@ -25,7 +25,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
-    jsxImportSource: 'matrix'
+    jsxImportSource: '@mickyballadelli/matrix'
   }
 })
 ```
@@ -33,7 +33,7 @@ export default defineConfig({
 Write Matrix components with normal JSX:
 
 ```jsx
-import { mount, signal } from 'matrix'
+import { mount, signal } from '@mickyballadelli/matrix'
 
 const count = signal(0)
 const App = () => (

@@ -20,7 +20,7 @@ export function getCurrentComponent() {
 
 export function provide(key, value) {
   if (!currentComponent) {
-    throw new Error('provide() doit être appelé dans un composant')
+    throw new Error('provide() must be called inside a component')
   }
 
   currentComponent.provides.set(key, value)

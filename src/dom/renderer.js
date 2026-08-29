@@ -42,13 +42,31 @@ function removeNode(node) {
   }
 }
 
+function removeRange(start, end) {
+  let current = start
+
+  while (current) {
+    const next = current.nextSibling
+    removeNode(current)
+    if (current === end) {
+      break
+    }
+    current = next
+  }
+}
+
 function assertSafeUrl(name, value) {
   if (!URL_ATTRIBUTES.has(name.toLowerCase()) || typeof value !== 'string') {
     return
   }
 
-  if (/^(?:javascript|vbscript|data):/i.test(value.trim())) {
-    throw new Error(`URL dynamique refusée pour l’attribut ${name}`)
+  const schemeEnd = value.indexOf(':')
+  const scheme = schemeEnd === -1
+    ? ''
+    : value.slice(0, schemeEnd).replace(/[\u0000-\u0020\u007f]+/g, '').toLowerCase()
+
+  if (scheme === 'javascript' || scheme === 'vbscript' || scheme === 'data') {
+    throw new Error(`Unsafe dynamic URL rejected for attribute ${name}`)
   }
 }
 
@@ -203,6 +221,7 @@ function renderComponent(result, parent, before, ownerScope) {
     provides: new Map(),
     isErrorBoundary: Boolean(result[ERROR_BOUNDARY_RESULT]),
     result,
+    stateScope: componentScope,
     stateSlots: [],
     stateCursor: 0,
     isRendering: false,
@@ -211,9 +230,10 @@ function renderComponent(result, parent, before, ownerScope) {
 
   let output
   let outputState
+  let renderScope = createScope(componentScope)
 
   try {
-    componentScope.run(() => {
+    renderScope.run(() => {
       output = runComponentRender(instance, result)
       outputState = runWithComponent(instance, () => renderResolvedValue(output, parent, before, componentScope))
     })
@@ -273,11 +293,13 @@ function renderComponent(result, parent, before, ownerScope) {
       }
 
       outputState.dispose()
+      renderScope.dispose()
+      renderScope = createScope(componentScope)
       result = nextResult
       instance.result = nextResult
       instance.mountCallbacks.length = 0
 
-      componentScope.run(() => {
+      renderScope.run(() => {
         output = runComponentRender(instance, result)
         outputState = runWithComponent(instance, () => renderResolvedValue(output, parent, before, componentScope))
       })
@@ -293,11 +315,18 @@ function renderComponent(result, parent, before, ownerScope) {
 }
 
 function runComponentRender(instance, result) {
+  const expectedStateSlots = instance.stateSlots.length
   instance.stateCursor = 0
   instance.isRendering = true
 
   try {
-    return runWithComponent(instance, () => runWithRenderState(instance, () => result.render(result.props)))
+    const output = runWithComponent(instance, () => runWithRenderState(instance, () => result.render(result.props)))
+
+    if (instance.isMounted && instance.stateCursor !== expectedStateSlots) {
+      throw new Error(`Component state order changed: expected ${expectedStateSlots} slots, received ${instance.stateCursor}`)
+    }
+
+    return output
   } finally {
     instance.isRendering = false
   }
@@ -323,20 +352,28 @@ function resolveAttributeSource(parts, values) {
   return resolveAttributeValue(parts, values)
 }
 
-function setStyleValue(element, value) {
+function setStyleValue(element, value, appliedProperties) {
   if (value === null || value === undefined || value === false) {
     element.removeAttribute('style')
-    return
+    return new Set()
   }
 
   if (typeof value === 'string') {
     element.style.cssText = value
-    return
+    return new Set()
   }
 
   if (typeof value !== 'object') {
     element.style.cssText = String(value)
-    return
+    return new Set()
+  }
+
+  const nextProperties = new Set(Object.keys(value))
+
+  for (const property of appliedProperties) {
+    if (!nextProperties.has(property)) {
+      element.style.removeProperty(property)
+    }
   }
 
   for (const [property, propertyValue] of Object.entries(value)) {
@@ -346,6 +383,8 @@ function setStyleValue(element, value) {
       element.style.setProperty(property, propertyValue)
     }
   }
+
+  return nextProperties
 }
 
 function bindEvent(element, eventName, parts, values, scope) {
@@ -366,13 +405,13 @@ function bindEvent(element, eventName, parts, values, scope) {
 
     if (typeof nextHandler === 'function') {
       currentListener = event => {
-        nextHandler(event)
         if (modifiers.includes('prevent')) {
           event.preventDefault()
         }
         if (modifiers.includes('stop')) {
           event.stopPropagation()
         }
+        nextHandler(event)
       }
       element.addEventListener(type, currentListener, eventOptions)
     } else {
@@ -389,6 +428,7 @@ function bindEvent(element, eventName, parts, values, scope) {
 
 function bindAttribute(element, binding, values, scope) {
   const { name, parts } = binding
+  let appliedStyleProperties = new Set()
 
   if (name === 'use:style') {
     applyStyle(element, resolveAttributeSource(parts, values), scope)
@@ -411,7 +451,7 @@ function bindAttribute(element, binding, values, scope) {
   if (name.startsWith(EVENT_PREFIX)) {
     const eventName = name.slice(EVENT_PREFIX.length)
     if (!eventName) {
-      throw new Error('Nom d’événement vide dans un template Matrix')
+      throw new Error('Empty event name in Matrix template')
     }
     bindEvent(element, eventName, parts, values, scope)
     return
@@ -423,7 +463,7 @@ function bindAttribute(element, binding, values, scope) {
     if (name.startsWith(PROPERTY_PREFIX)) {
       const property = name.slice(PROPERTY_PREFIX.length)
       if (!property) {
-      throw new Error('Nom de propriété vide dans un template Matrix')
+      throw new Error('Empty property name in Matrix template')
       }
       assertSafeUrl(property, String(value ?? ''))
       element[property] = value
@@ -433,14 +473,14 @@ function bindAttribute(element, binding, values, scope) {
     if (name.startsWith(BOOLEAN_PREFIX)) {
       const attributeName = name.slice(BOOLEAN_PREFIX.length)
       if (!attributeName) {
-      throw new Error('Nom d’attribut booléen vide dans un template Matrix')
+      throw new Error('Empty boolean attribute name in Matrix template')
       }
       element.toggleAttribute(attributeName, Boolean(value))
       return
     }
 
     if (name === 'style') {
-      setStyleValue(element, value)
+      appliedStyleProperties = setStyleValue(element, value, appliedStyleProperties)
       return
     }
 
@@ -514,15 +554,21 @@ function renderTemplate(result, parent, before, ownerScope) {
 
   parent.insertBefore(fragment, end)
 
-  templateScope.run(() => {
-    for (const binding of textBindings) {
-      renderDynamicValue(result.values[binding.index], binding.node.parentNode, binding.node, templateScope)
-    }
+  try {
+    templateScope.run(() => {
+      for (const binding of textBindings) {
+        renderDynamicValue(result.values[binding.index], binding.node.parentNode, binding.node, templateScope)
+      }
 
-    for (const binding of attributeBindings) {
-      bindAttribute(binding.element, binding, result.values, templateScope)
-    }
-  })
+      for (const binding of attributeBindings) {
+        bindAttribute(binding.element, binding, result.values, templateScope)
+      }
+    })
+  } catch (error) {
+    templateScope.dispose()
+    removeRange(start, end)
+    throw error
+  }
 
   return {
     firstNode: start,
@@ -548,16 +594,7 @@ function renderTemplate(result, parent, before, ownerScope) {
     },
     dispose() {
       templateScope.dispose()
-
-      let current = start
-      while (current) {
-        const next = current.nextSibling
-        removeNode(current)
-        if (current === end) {
-          break
-        }
-        current = next
-      }
+      removeRange(start, end)
     }
   }
 }
@@ -593,7 +630,7 @@ function renderKeyedList(result, parent, before, ownerScope) {
     for (const item of items) {
       const key = result.getKey(item)
       if (nextByKey.has(key)) {
-        throw new Error(`Clé de liste dupliquée : ${String(key)}`)
+        throw new Error(`Duplicate list key: ${String(key)}`)
       }
 
       const previousState = previous.get(key)
@@ -677,11 +714,12 @@ function renderKeyedList(result, parent, before, ownerScope) {
 
 export function mount(view, container, props = {}) {
   if (!container || typeof container.insertBefore !== 'function') {
-    throw new TypeError('mount() attend un conteneur DOM')
+    throw new TypeError('mount() expects a DOM container')
   }
 
   const rootScope = createScope()
   let rendered
+  let unmounted = false
   const rootView = typeof view === 'function' ? component(view, props) : view
 
   try {
@@ -698,6 +736,11 @@ export function mount(view, container, props = {}) {
       return rendered.nodes
     },
     unmount() {
+      if (unmounted) {
+        return
+      }
+
+      unmounted = true
       rendered.dispose()
       rootScope.dispose()
     }

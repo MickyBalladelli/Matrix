@@ -17,7 +17,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   esbuild: {
     jsx: 'automatic',
-    jsxImportSource: 'matrix'
+    jsxImportSource: '@mickyballadelli/matrix'
   }
 })
 ```

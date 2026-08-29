@@ -87,10 +87,10 @@ const router = createRouter([
 ])
 
 router.start()
-router.navigate('/users/7')
+await router.navigate('/users/7?tab=profile#details')
 ```
 
-`router.current` is a Computed state containing the route and its parameters, or `null`.
+`router.current` is a Computed state containing the route and its parameters, or `null`. `router.search` and `router.hash` preserve the rest of the URL.
 
 To render the active view in a template:
 
@@ -99,7 +99,7 @@ const activeView = routerView(router, NotFound)
 const App = () => html`${activeView}`
 ```
 
-A synchronous guard can be provided with `beforeEach`. Return `false` to block navigation.
+A sync or async guard can be provided with `beforeEach`. Return `false` to block navigation.
 
 ## 6. Styles
 

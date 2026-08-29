@@ -8,6 +8,7 @@ import {
   disposeStyle,
   errorBoundary,
   html,
+  jsx,
   keyed,
   globalCss,
   mount,
@@ -273,10 +274,11 @@ const router = createRouter([
   { path: '/matrix-user/:id', view: () => html`<p>user</p>` }
 ])
 router.start()
-assert(router.navigate('/matrix-user/7'), 'Le routeur doit naviguer')
+assert(await router.navigate('/matrix-user/7?tab=profile#details'), 'Le routeur doit naviguer')
 assert(router.current.value.params.id === '7', 'Le routeur doit extraire les paramètres')
-router.navigate('/')
-router.navigate('/matrix-user/7')
+assert(router.search.value === '?tab=profile' && router.hash.value === '#details', 'Router must preserve search and hash')
+await router.navigate('/')
+await router.navigate('/matrix-user/7')
 const backNavigation = new Promise(resolve => window.addEventListener('popstate', resolve, { once: true }))
 window.history.back()
 await backNavigation
@@ -310,6 +312,62 @@ const disposedApp = mount(() => html`<span>${disposedSignal}</span>`, host)
 disposedApp.unmount()
 disposedSignal.value = 'gone'
 assert(host.textContent === '', 'Aucun effet DOM ne doit survivre au démontage')
+
+const styleObject = signal({ color: 'red', 'background-color': 'blue' })
+const styleObjectApp = mount(() => html`<div style=${styleObject}>style object</div>`, host)
+const styleObjectNode = host.querySelector('div')
+styleObject.value = { color: 'green' }
+assert(styleObjectNode.style.color === 'green', 'Object style must update retained properties')
+assert(styleObjectNode.style.backgroundColor === '', 'Object style must remove missing properties')
+styleObjectApp.unmount()
+
+let chainedEvents = 0
+const chainedEventApp = mount(() => jsx('button', {
+  onClickCaptureOncePrevent: event => {
+    assert(event.defaultPrevented, 'Prevent modifier must run before the handler')
+    chainedEvents += 1
+  },
+  children: 'chained event'
+}), host)
+const chainedEventButton = host.querySelector('button')
+chainedEventButton.click()
+chainedEventButton.click()
+assert(chainedEvents === 1, 'Chained event modifiers must all apply')
+chainedEventApp.unmount()
+
+const keyedJsxItems = signal([
+  jsx(StatefulProps, { id: 'first', label: 'first' }, 'first'),
+  jsx(StatefulProps, { id: 'second', label: 'second' }, 'second')
+])
+const keyedJsxApp = mount(() => html`${keyed(keyedJsxItems)}`, host)
+host.querySelector('button').click()
+keyedJsxItems.value = [keyedJsxItems.value[1], keyedJsxItems.value[0]]
+assert(host.querySelectorAll('button')[1].textContent === 'first:1', 'JSX runtime keys must preserve component state')
+keyedJsxApp.unmount()
+
+const complexStyle = css`
+  :is(.first, .second) { color: red }
+  @media (min-width: 1px) { .inside { display: block } }
+  @keyframes matrix-test { from { opacity: 0 } to { opacity: 1 } }
+`
+const complexStyleApp = mount(() => html`<div use:style=${complexStyle} class="first inside">complex</div>`, host)
+const complexCss = document.querySelector(`style[data-matrix-style="${complexStyle.id}"]`).textContent
+assert(complexCss.includes(':is(.first, .second)'), 'Scoped CSS must preserve commas inside modern selectors')
+assert(complexCss.includes('@media') && complexCss.includes('@keyframes'), 'Scoped CSS must preserve at-rules and keyframes')
+complexStyleApp.unmount()
+
+let unsafeUrlError
+try {
+  mount(() => html`<a href=${'java\nscript:alert(1)'}>unsafe</a>`, host)
+} catch (error) {
+  unsafeUrlError = error
+}
+assert(unsafeUrlError instanceof Error, 'Dynamic URLs must reject obfuscated script schemes')
+
+const idempotentApp = mount(() => html`<p>idempotent</p>`, host)
+idempotentApp.unmount()
+idempotentApp.unmount()
+assert(host.textContent === '', 'Unmount must be idempotent')
 
 document.body.dataset.matrixTests = 'passed'
 window.__MATRIX_TEST_RESULT__ = 'passed'

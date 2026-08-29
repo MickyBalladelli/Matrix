@@ -1,8 +1,8 @@
 export const KEYED_LIST_RESULT = Symbol('matrix.keyed.list')
 
-export function keyed(items, getKey = value => value) {
+export function keyed(items, getKey = value => value?.key ?? value) {
   if (typeof getKey !== 'function') {
-    throw new TypeError('keyed() attend une fonction de clé')
+    throw new TypeError('keyed() expects a key function')
   }
 
   return {

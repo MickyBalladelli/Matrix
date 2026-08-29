@@ -14,7 +14,7 @@
 - Initial mount time.
 - Time for a targeted update.
 - Number of DOM operations.
-- Size of the source ESM graph, then gzip and Brotli; minified size waits for the bundler choice.
+- Minified, gzip, and Brotli size for every public runtime entry.
 - Memory after 1,000 mounts and unmounts.
 
 ## Alpha thresholds
@@ -26,6 +26,8 @@
 
 Reproducible benchmarks live in `bench/reactivity.js` and `bench/dom.browser.js`. The second measures mounting, one update, a keyed list and a full replacement reference. DOM measurements must use a real DOM, not only the reactive engine.
 
-After `npm run build`, `npm run size` measures the aggregated source ESM graph, gzip and Brotli. The output explicitly says when minification is not available yet.
+`npm run size` bundles each public entry with esbuild, records minified, gzip, and Brotli bytes, and fails when a checked-in Brotli budget is exceeded.
 
 `npm run bench` measures the reactive engine. Keep results in a release note with the machine, browser or Node version used. External comparisons remain optional until the protocol is identical.
+
+Release notes must record `npm run size`, `npm run bench`, Node version, browser version, operating system, and hardware. Compare a release with the previous published version before changing a budget.

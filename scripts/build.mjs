@@ -1,6 +1,18 @@
-import { cp, mkdir, writeFile } from 'node:fs/promises'
+import { cp, mkdir, rename, stat, writeFile } from 'node:fs/promises'
 
 const outputDirectory = new URL('../dist/', import.meta.url)
+const trashDirectory = new URL('../Trash/', import.meta.url)
+
+try {
+  await stat(outputDirectory)
+  await mkdir(trashDirectory, { recursive: true })
+  const backupDirectory = new URL(`./dist-build-${Date.now()}/`, trashDirectory)
+  await rename(outputDirectory, backupDirectory)
+} catch (error) {
+  if (error.code !== 'ENOENT') {
+    throw error
+  }
+}
 
 await mkdir(outputDirectory, { recursive: true })
 await cp(new URL('../src/', import.meta.url), new URL('./src/', outputDirectory), { recursive: true })

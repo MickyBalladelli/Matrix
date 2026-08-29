@@ -20,7 +20,7 @@ The reactive engine does not know about the DOM. The renderer knows about signal
 - `src/utils`: router, forms, async resources and debugging.
 - `src/plugins.js`: four small extension points for tools and integrations.
 
-The exports from `src/index.js` and the subpaths declared in `package.json` are public. Internal files may change between alpha versions.
+The exports declared in `package.json` are public. The npm artifact uses `dist`; files below other paths are internal and may change between alpha versions.
 
 ## Reactivity
 
@@ -36,7 +36,7 @@ Effects are synchronous by default. `flush: 'microtask'` and `batch()` group upd
 
 Dynamic data is escaped when it becomes text. A DOM node, template, component, list or signal is rendered without rebuilding its parent.
 
-The optional JSX runtime translates JSX elements into cached Matrix templates and JSX components into Matrix component results. JSX is app tooling; the core renderer does not require it.
+The optional JSX runtime translates JSX elements into cached Matrix templates and JSX components into Matrix component results. JSX runtime keys integrate with `keyed()`. JSX is app tooling; the core renderer does not require it.
 
 Dangerous dynamic URL values are rejected before writing. Self-closing tags and markup corrections follow the browser's native HTML parser.
 
@@ -57,6 +57,6 @@ Plugins can observe the renderer, scheduler, log events and style manager. They 
 ## Alpha limits
 
 - Intentional raw HTML is not provided by default.
-- Advanced list diffing and keys require a dedicated primitive.
+- Keyed reconciliation is explicit through `keyed()`; unkeyed arrays do not perform advanced diffing.
 - SSR and hydration are outside this first release.
 - The router uses the History API and requires a browser environment.

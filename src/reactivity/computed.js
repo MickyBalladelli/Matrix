@@ -10,12 +10,14 @@ export function computed(fn, options = {}) {
 
     if (existing) {
       if (existing.kind !== 'computed') {
-        throw new Error(`Ordre des états local instable à la position ${slot}`)
+        throw new Error(`Component state order changed at slot ${slot}`)
       }
       return existing.value
     }
 
-    const value = createComputed(fn, options)
+    const value = renderState.stateScope
+      ? renderState.stateScope.run(() => createComputed(fn, options))
+      : createComputed(fn, options)
     renderState.stateSlots[slot] = { kind: 'computed', value }
     return value
   }
@@ -28,10 +30,10 @@ function createComputed(fn, options) {
   const setter = fn && typeof fn === 'object' ? fn.set : undefined
 
   if (typeof getter !== 'function') {
-    throw new TypeError('computed() attend une fonction')
+    throw new TypeError('computed() expects a function')
   }
   if (setter !== undefined && typeof setter !== 'function') {
-    throw new TypeError('computed() attend un setter valide')
+    throw new TypeError('computed() expects a valid setter')
   }
 
   const equals = options.equals ?? Object.is
@@ -79,7 +81,7 @@ function createComputed(fn, options) {
     }
 
     if (computing) {
-      throw new Error('Boucle de calcul détectée dans un computed()')
+      throw new Error('Reactive loop detected in computed()')
     }
 
     computing = true
@@ -99,7 +101,7 @@ function createComputed(fn, options) {
   const api = {
     get value() {
       if (disposed) {
-        throw new Error('Impossible de lire un computed détruit')
+        throw new Error('Cannot read a disposed computed value')
       }
 
       trackSource(source)
@@ -112,7 +114,7 @@ function createComputed(fn, options) {
 
     set value(nextValue) {
       if (!setter) {
-        throw new TypeError('Ce computed est en lecture seule')
+        throw new TypeError('This computed value is read-only')
       }
 
       setter(nextValue)

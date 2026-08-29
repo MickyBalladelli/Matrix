@@ -5,27 +5,28 @@ import {
 
 export const COMPONENT_RESULT = Symbol('matrix.component.result')
 
-export function component(render, props = {}) {
+export function component(render, props = {}, key) {
   if (typeof render !== 'function') {
-    throw new TypeError('component() attend une fonction de rendu')
+    throw new TypeError('component() expects a render function')
   }
 
   const sourceProps = props && typeof props === 'object' ? props : {}
   const protectedProps = new Proxy(sourceProps, {
     set() {
-      throw new TypeError('Les props sont en lecture seule')
+      throw new TypeError('Component props are read-only')
     },
     deleteProperty() {
-      throw new TypeError('Les props sont en lecture seule')
+      throw new TypeError('Component props are read-only')
     }
   })
 
   return {
     [COMPONENT_RESULT]: true,
+    key,
     render,
     props: protectedProps,
     update(nextResult) {
-      return nextResult?.render === render
+      return nextResult?.render === render && nextResult?.key === key
     }
   }
 }
@@ -36,12 +37,12 @@ export function isComponentResult(value) {
 
 export function onMount(callback) {
   if (typeof callback !== 'function') {
-    throw new TypeError('onMount() attend une fonction')
+    throw new TypeError('onMount() expects a function')
   }
 
   const instance = getCurrentComponent()
   if (!instance) {
-    throw new Error('onMount() doit être appelé dans un composant')
+    throw new Error('onMount() must be called inside a component')
   }
 
   instance.mountCallbacks.push(callback)
@@ -49,12 +50,12 @@ export function onMount(callback) {
 
 export function onUnmount(cleanup) {
   if (typeof cleanup !== 'function') {
-    throw new TypeError('onUnmount() attend une fonction')
+    throw new TypeError('onUnmount() expects a function')
   }
 
   const instance = getCurrentComponent()
   if (!instance) {
-    throw new Error('onUnmount() doit être appelé dans un composant')
+    throw new Error('onUnmount() must be called inside a component')
   }
 
   return instance.scope.add(cleanup)
@@ -62,16 +63,16 @@ export function onUnmount(cleanup) {
 
 export function errorBoundary(render, fallback, props = {}) {
   if (typeof render !== 'function') {
-    throw new TypeError('errorBoundary() attend une fonction de rendu')
+    throw new TypeError('errorBoundary() expects a render function')
   }
 
   const protectedProps = props && typeof props === 'object'
     ? new Proxy(props, {
         set() {
-          throw new TypeError('Les props sont en lecture seule')
+          throw new TypeError('Component props are read-only')
         },
         deleteProperty() {
-          throw new TypeError('Les props sont en lecture seule')
+          throw new TypeError('Component props are read-only')
         }
       })
     : {}

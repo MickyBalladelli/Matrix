@@ -1,9 +1,9 @@
 export function delegate(element, eventName, selector, handler, options) {
   if (!element || typeof element.addEventListener !== 'function') {
-    throw new TypeError('delegate() attend un élément DOM')
+    throw new TypeError('delegate() expects a DOM element')
   }
   if (typeof selector !== 'string' || typeof handler !== 'function') {
-    throw new TypeError('delegate() attend un sélecteur et une fonction')
+    throw new TypeError('delegate() expects a selector and handler function')
   }
 
   const listener = event => {

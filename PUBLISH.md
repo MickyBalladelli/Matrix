@@ -1,90 +1,68 @@
-# Publish Matrix and create-matrix-app
+# Publish Matrix
 
-This repository contains two npm packages:
+Matrix publishes as `@mickyballadelli/matrix`. The first release uses the `next` npm tag.
 
-- `matrix` — the Matrix library
-- `create-matrix-app` — the project generator used by `npx`
-
-Publish `matrix` first. Generated apps install Matrix from npm.
-
-## Before publishing
-
-1. Create an npm account.
-2. Check that the package names are available.
-3. Make sure the version is new. npm does not allow publishing the same name and version twice.
-4. Matrix is currently marked private in the root `package.json`. Remove `"private": true` before publishing Matrix.
-5. Make sure the dependency in `create-matrix-app/template/package.json` points to the published Matrix version.
-
-Official docs:
-
-- [npm login](https://docs.npmjs.com/cli/v11/commands/npm-login/)
-- [npm publish](https://docs.npmjs.com/cli/commands/npm-publish/)
-
-## Login
-
-Run once on the machine that publishes packages:
-
-```bash
-npm login
-npm whoami
-```
-
-## Publish Matrix
+## Direct publish
 
 Run from the repository root:
 
 ```bash
-npm version patch
-npm run build
-npm pack --dry-run
-npm publish --access public
+npm login --cache /private/tmp/matrix-npm-cache
+npm whoami --cache /private/tmp/matrix-npm-cache
+
+npm pack --dry-run --cache /private/tmp/matrix-npm-cache
+npm publish --access public --tag next --cache /private/tmp/matrix-npm-cache
+
+npm view @mickyballadelli/matrix@0.1.0-alpha.0 --cache /private/tmp/matrix-npm-cache
 ```
 
-Use `npm version minor` or `npm version major` when the change needs a larger version bump.
+`prepack` rebuilds `dist` and checks every export before npm creates the package.
 
-The dry run shows which files npm will publish. The real publish sends the package to the npm registry.
+Install the alpha with:
+
+```bash
+npm install @mickyballadelli/matrix@next
+```
+
+## Change the version
+
+Do not let npm create a git commit or tag:
+
+```bash
+npm version prerelease --preid=alpha --no-git-tag-version
+```
+
+Update `CHANGELOG.md` and the generator template version before publishing.
+
+## Trusted publish
+
+The manual GitHub workflow in `.github/workflows/publish.yml` uses npm trusted publishing and provenance. Configure this repository and workflow as a trusted publisher in npm before running it.
 
 ## Publish create-matrix-app
 
-Update the Matrix dependency first if needed, then run from the generator directory:
+Publish Matrix first. Then run:
 
 ```bash
 cd create-matrix-app
-npm version patch
-npm pack --dry-run
-npm publish --access public
+npm version prerelease --preid=alpha --no-git-tag-version
+npm pack --dry-run --cache /private/tmp/matrix-npm-cache
+npm publish --access public --tag next --cache /private/tmp/matrix-npm-cache
 ```
 
-The generator package has a `bin` entry, so npm exposes it as the `create-matrix-app` command.
-
-## Use with npx
-
-After both packages are published:
+Confirm the generator template points to the published Matrix version. Then create an app outside this repository:
 
 ```bash
-npx create-matrix-app my-app
+npx create-matrix-app@next my-app
 cd my-app
-npm run dev
-```
-
-Build the generated app with:
-
-```bash
 npm run build
 ```
 
-Test a specific generator version with:
+## Promote after Prism works
+
+After a clean Prism Vercel deployment uses the exact alpha successfully:
 
 ```bash
-npx create-matrix-app@0.0.1 my-app
+npm dist-tag add @mickyballadelli/matrix@0.1.0-alpha.0 latest
 ```
 
-## Local generator development
-
-Use the generator without publishing it:
-
-```bash
-npm run create-app -- examples/my-app
-```
-
-When the target is inside this repository, the generator uses the local Matrix package. For a target outside this repository, it uses the published Matrix package version.
+Prefer publishing a stable version instead of promoting an alpha when public users are expected.

@@ -19,7 +19,7 @@ export function createScope(parent = getCurrentScope()) {
 
     run(fn) {
       if (disposed) {
-        throw new Error('Impossible d’utiliser un scope détruit')
+        throw new Error('Cannot use a disposed scope')
       }
 
       return runWithScope(scope, fn)
@@ -27,7 +27,7 @@ export function createScope(parent = getCurrentScope()) {
 
     add(cleanup) {
       if (typeof cleanup !== 'function') {
-        throw new TypeError('Un nettoyage doit être une fonction')
+        throw new TypeError('A cleanup must be a function')
       }
 
       if (disposed) {
@@ -87,7 +87,7 @@ export function createScope(parent = getCurrentScope()) {
 
 export function disposeScope(scope) {
   if (!scope || typeof scope.dispose !== 'function') {
-    throw new TypeError('disposeScope attend un scope valide')
+    throw new TypeError('disposeScope() expects a valid scope')
   }
 
   scope.dispose()
@@ -97,7 +97,7 @@ export function onCleanup(cleanup) {
   const scope = getCurrentScope()
 
   if (!scope) {
-    throw new Error('onCleanup() doit être appelé dans un scope actif')
+    throw new Error('onCleanup() must be called inside an active scope')
   }
 
   return scope.add(cleanup)

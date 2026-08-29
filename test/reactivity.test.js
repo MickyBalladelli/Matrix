@@ -180,7 +180,7 @@ test('dispose retire les abonnements d’un signal', () => {
   source.dispose()
 
   assert.equal(source._source.subscribers.size, 0)
-  assert.throws(() => source.value, /signal détruit/)
+  assert.throws(() => source.value, /disposed signal/)
   stop()
 })
 
@@ -212,7 +212,7 @@ test('les cycles réactifs sont limités', () => {
       source.value
       source.value += 1
     })
-  }, /Boucle réactive détectée/)
+  }, /Reactive loop detected/)
 })
 
 test('un Effect peut créer un autre Effect', () => {

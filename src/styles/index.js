@@ -74,10 +74,46 @@ function prefixSelector(selector, scopeSelector) {
 }
 
 function prefixSelectors(prelude, scopeSelector) {
-  return prelude
-    .split(',')
+  return splitSelectorList(prelude)
     .map(selector => prefixSelector(selector, scopeSelector))
     .join(', ')
+}
+
+function splitSelectorList(source) {
+  const selectors = []
+  let start = 0
+  let parentheses = 0
+  let brackets = 0
+  let quote = ''
+
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index]
+
+    if (quote) {
+      if (character === quote && source[index - 1] !== '\\') {
+        quote = ''
+      }
+      continue
+    }
+
+    if (character === '"' || character === "'") {
+      quote = character
+    } else if (character === '(') {
+      parentheses += 1
+    } else if (character === ')') {
+      parentheses -= 1
+    } else if (character === '[') {
+      brackets += 1
+    } else if (character === ']') {
+      brackets -= 1
+    } else if (character === ',' && parentheses === 0 && brackets === 0) {
+      selectors.push(source.slice(start, index))
+      start = index + 1
+    }
+  }
+
+  selectors.push(source.slice(start))
+  return selectors
 }
 
 function scopeRules(source, scopeSelector, insideKeyframes = false) {
@@ -165,7 +201,7 @@ export function globalCss(strings, ...values) {
 
 export function cssVariables(values) {
   if (!values || typeof values !== 'object') {
-    throw new TypeError('cssVariables() attend un objet')
+    throw new TypeError('cssVariables() expects an object')
   }
 
   return {
@@ -209,6 +245,18 @@ export function utilityCss() {
     }
     .stack { display: grid; gap: var(--matrix-space-2); }
     .cluster { display: flex; flex-wrap: wrap; gap: var(--matrix-space-2); }
+    .matrix-focus-ring:focus-visible {
+      outline: 3px solid var(--matrix-color-primary);
+      outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .matrix-motion-safe {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   `)
 }
 
@@ -222,7 +270,7 @@ export function isVariablesResult(value) {
 
 export function applyStyle(element, definition, scope) {
   if (!isStyleResult(definition)) {
-    throw new TypeError('use:style attend un résultat css()')
+    throw new TypeError('use:style expects a css() result')
   }
 
   ensureStyleElement(element.ownerDocument, definition)
@@ -242,7 +290,7 @@ export function applyStyle(element, definition, scope) {
 
 export function disposeStyle(definition, document = globalThis.document) {
   if (!isStyleResult(definition)) {
-    throw new TypeError('disposeStyle() attend un résultat css() ou globalCss()')
+    throw new TypeError('disposeStyle() expects a css() or globalCss() result')
   }
 
   if (!document) {
@@ -263,7 +311,7 @@ export function disposeStyle(definition, document = globalThis.document) {
 
 export function applyCssVariables(element, definition, scope) {
   if (!isVariablesResult(definition)) {
-    throw new TypeError('use:vars attend un résultat cssVariables()')
+    throw new TypeError('use:vars expects a cssVariables() result')
   }
 
   const applied = new Set()

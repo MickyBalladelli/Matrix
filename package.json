@@ -1,41 +1,106 @@
 {
-  "name": "matrix",
-  "version": "0.0.1",
-  "private": true,
+  "name": "@mickyballadelli/matrix",
+  "version": "0.1.0-alpha.0",
+  "description": "Tiny fine-grained reactive JavaScript framework with an optional JSX runtime",
   "type": "module",
+  "license": "MIT",
+  "author": "Micky Balladelli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MickyBalladelli/Matrix.git"
+  },
+  "homepage": "https://github.com/MickyBalladelli/Matrix#readme",
+  "bugs": {
+    "url": "https://github.com/MickyBalladelli/Matrix/issues"
+  },
+  "keywords": [
+    "reactive",
+    "signals",
+    "frontend",
+    "jsx",
+    "ui"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@12.0.2",
   "types": "./types/index.d.ts",
   "sideEffects": false,
   "files": [
-    "src",
     "types",
     "dist",
     "docs",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md",
+    "SUPPORT.md"
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
+    "prepack": "npm run build && node scripts/check-package.mjs",
     "create-app": "node create-matrix-app/index.mjs",
     "size": "node scripts/size.mjs",
     "test": "node --test",
+    "test:browser": "node test/run-browser-tests.mjs",
+    "test:types": "tsc -p test/types/tsconfig.json",
+    "test:package": "node scripts/package-smoke.mjs",
     "bench": "node bench/reactivity.js"
   },
   "exports": {
-    ".": "./src/index.js",
-    "./reactivity": "./src/reactivity/index.js",
-    "./components": "./src/components/index.js",
-    "./dom": "./src/dom/index.js",
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/src/index.js",
+      "default": "./dist/src/index.js"
+    },
+    "./reactivity": {
+      "types": "./types/reactivity.d.ts",
+      "import": "./dist/src/reactivity/index.js",
+      "default": "./dist/src/reactivity/index.js"
+    },
+    "./components": {
+      "types": "./types/components.d.ts",
+      "import": "./dist/src/components/index.js",
+      "default": "./dist/src/components/index.js"
+    },
+    "./dom": {
+      "types": "./types/dom.d.ts",
+      "import": "./dist/src/dom/index.js",
+      "default": "./dist/src/dom/index.js"
+    },
     "./jsx-runtime": {
       "types": "./types/jsx-runtime.d.ts",
-      "import": "./src/jsx-runtime.js"
+      "import": "./dist/src/jsx-runtime.js",
+      "default": "./dist/src/jsx-runtime.js"
     },
     "./jsx-dev-runtime": {
       "types": "./types/jsx-dev-runtime.d.ts",
-      "import": "./src/jsx-dev-runtime.js"
+      "import": "./dist/src/jsx-dev-runtime.js",
+      "default": "./dist/src/jsx-dev-runtime.js"
     },
-    "./styles": "./src/styles/index.js",
-    "./utils": "./src/utils/index.js",
-    "./plugins": "./src/plugins.js"
+    "./styles": {
+      "types": "./types/styles.d.ts",
+      "import": "./dist/src/styles/index.js",
+      "default": "./dist/src/styles/index.js"
+    },
+    "./utils": {
+      "types": "./types/utils.d.ts",
+      "import": "./dist/src/utils/index.js",
+      "default": "./dist/src/utils/index.js"
+    },
+    "./plugins": {
+      "types": "./types/plugins.d.ts",
+      "import": "./dist/src/plugins.js",
+      "default": "./dist/src/plugins.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.9.2"
   }
 }

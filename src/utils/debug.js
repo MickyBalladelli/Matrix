@@ -33,7 +33,7 @@ export function createLogger(options = {}) {
 
 export function watchDebug(source, name = 'signal', logger = console, options = {}) {
   if (!source || typeof source.get !== 'function') {
-    throw new TypeError('watchDebug() attend un signal ou computed')
+    throw new TypeError('watchDebug() expects a signal or computed value')
   }
 
   const limit = options.warnAfter ?? 1000
@@ -55,7 +55,7 @@ export function watchDebug(source, name = 'signal', logger = console, options = 
 
     updateCount += 1
     if (updateCount === limit) {
-      logger.warn?.(`[Matrix] ${name} se met à jour très souvent`)
+      logger.warn?.(`[Matrix] ${name} updates very often`)
       emitDebugEvent({ type: 'signal:hot', name, source, count: updateCount })
     }
   })

@@ -3,7 +3,7 @@ import { onCleanup } from '../reactivity/scope.js'
 
 export function resource(loader, options = {}) {
   if (typeof loader !== 'function') {
-    throw new TypeError('resource() attend une fonction')
+    throw new TypeError('resource() expects a function')
   }
 
   const status = signal('idle')

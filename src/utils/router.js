@@ -56,7 +56,7 @@ function matchRoute(routes, path) {
 
 export function createRouter(routeDefinitions = [], options = {}) {
   if (typeof window === 'undefined') {
-    throw new Error('createRouter() doit être utilisé dans un navigateur')
+    throw new Error('createRouter() must be used in a browser')
   }
 
   const routes = routeDefinitions.map(route => ({
@@ -68,11 +68,15 @@ export function createRouter(routeDefinitions = [], options = {}) {
     ? pathname.slice(base.length) || '/'
     : pathname
   const path = signal(normalizePath(stripBase(window.location.pathname)))
+  const search = signal(window.location.search)
+  const hash = signal(window.location.hash)
   const current = computed(() => matchRoute(routes, path.value))
   let started = false
 
   const onPopState = () => {
     path.value = normalizePath(stripBase(window.location.pathname))
+    search.value = window.location.search
+    hash.value = window.location.hash
   }
 
   function start() {
@@ -94,17 +98,43 @@ export function createRouter(routeDefinitions = [], options = {}) {
     window.removeEventListener('popstate', onPopState)
   }
 
-  function navigate(nextPath, navigationOptions = {}) {
-    const normalizedPath = normalizePath(nextPath)
-    const target = `${base}${normalizedPath}`
+  async function navigate(nextPath, navigationOptions = {}) {
+    const redirectDepth = navigationOptions._redirectDepth ?? 0
+    if (redirectDepth > 10) {
+      throw new Error('Router redirect limit exceeded')
+    }
+
+    const url = new URL(String(nextPath || '/'), window.location.href)
+    if (url.origin !== window.location.origin) {
+      throw new Error('createRouter().navigate() only accepts same-origin URLs')
+    }
+
+    const normalizedPath = normalizePath(stripBase(url.pathname))
+    const target = `${base}${normalizedPath}${url.search}${url.hash}`
     const destination = matchRoute(routes, normalizedPath)
 
-    if (typeof options.beforeEach === 'function') {
-      const allowed = options.beforeEach({
-        from: current.value,
-        to: destination,
-        path: normalizedPath
+    if (destination?.redirect) {
+      const redirectTarget = typeof destination.redirect === 'function'
+        ? destination.redirect({ route: destination, path: normalizedPath, search: url.search, hash: url.hash })
+        : destination.redirect
+
+      return navigate(redirectTarget, {
+        ...navigationOptions,
+        replace: true,
+        _redirectDepth: redirectDepth + 1
       })
+    }
+
+    const context = {
+      from: current.value,
+      to: destination,
+      path: normalizedPath,
+      search: url.search,
+      hash: url.hash
+    }
+
+    if (typeof options.beforeEach === 'function') {
+      const allowed = await options.beforeEach(context)
 
       if (allowed === false) {
         return false
@@ -117,12 +147,20 @@ export function createRouter(routeDefinitions = [], options = {}) {
       window.history.pushState({}, '', target)
     }
     onPopState()
-    options.afterEach?.({ route: current.value, path: normalizedPath })
+
+    if (url.hash) {
+      const targetId = decodeURIComponent(url.hash.slice(1))
+      document.getElementById(targetId)?.scrollIntoView()
+    } else if (navigationOptions.scroll !== false) {
+      window.scrollTo?.({ top: 0, left: 0 })
+    }
+
+    await options.afterEach?.({ ...context, route: current.value, to: current.value })
     return true
   }
 
   function link(nextPath) {
-    return event => {
+    return async event => {
       if (
         event.defaultPrevented ||
         event.button !== 0 ||
@@ -135,12 +173,14 @@ export function createRouter(routeDefinitions = [], options = {}) {
       }
 
       event.preventDefault()
-      navigate(nextPath)
+      return navigate(nextPath)
     }
   }
 
   return {
     path,
+    search,
+    hash,
     current,
     routes,
     start,

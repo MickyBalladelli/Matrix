@@ -43,16 +43,16 @@ const VOID_ELEMENTS = new Set([
   'wbr'
 ])
 
-export function jsx(type, props) {
-  return createJsxNode(type, props)
+export function jsx(type, props, key) {
+  return createJsxNode(type, props, key)
 }
 
-export function jsxs(type, props) {
-  return createJsxNode(type, props)
+export function jsxs(type, props, key) {
+  return createJsxNode(type, props, key)
 }
 
-export function jsxDEV(type, props) {
-  return createJsxNode(type, props)
+export function jsxDEV(type, props, key) {
+  return createJsxNode(type, props, key)
 }
 
 export function createElement(type, props, ...children) {
@@ -62,27 +62,34 @@ export function createElement(type, props, ...children) {
     nextProps.children = children.length === 1 ? children[0] : children
   }
 
-  return createJsxNode(type, nextProps)
+  return createJsxNode(type, nextProps, nextProps.key)
 }
 
 export const h = createElement
 
-function createJsxNode(type, props) {
+function createJsxNode(type, props, runtimeKey) {
   const nextProps = props ?? {}
+  const key = runtimeKey ?? nextProps.key
 
   if (type === Fragment) {
     return nextProps.children ?? null
   }
 
   if (typeof type === 'function') {
-    return component(type, nextProps)
+    const componentProps = { ...nextProps }
+    delete componentProps.key
+    return component(type, componentProps, key)
   }
 
   if (typeof type !== 'string' || type.length === 0) {
-    throw new TypeError('jsx() attend un élément ou un composant Matrix')
+    throw new TypeError('jsx() expects an element or Matrix component')
   }
 
-  return createElementTemplate(type, nextProps)
+  const result = createElementTemplate(type, nextProps)
+  if (key !== undefined) {
+    Object.defineProperty(result, 'key', { value: key, enumerable: true })
+  }
+  return result
 }
 
 function createElementTemplate(type, props) {
@@ -95,7 +102,7 @@ function createElementTemplate(type, props) {
     }
 
     if (name === 'dangerouslySetInnerHTML') {
-      throw new Error('dangerouslySetInnerHTML n’est pas pris en charge par Matrix')
+      throw new Error('Matrix does not support dangerouslySetInnerHTML')
     }
 
     attributes.push(toAttributeName(name))
@@ -116,17 +123,23 @@ function toAttributeName(name) {
     let eventName = eventMatch[1]
     const modifiers = []
 
-    for (const [suffix, modifier] of [
-      ['Capture', 'capture'],
-      ['Once', 'once'],
-      ['Passive', 'passive'],
-      ['Prevent', 'prevent'],
-      ['Stop', 'stop']
-    ]) {
-      if (eventName.endsWith(suffix)) {
-        eventName = eventName.slice(0, -suffix.length)
-        modifiers.push(modifier)
-        break
+    let matched = true
+    while (matched) {
+      matched = false
+
+      for (const [suffix, modifier] of [
+        ['Capture', 'capture'],
+        ['Once', 'once'],
+        ['Passive', 'passive'],
+        ['Prevent', 'prevent'],
+        ['Stop', 'stop']
+      ]) {
+        if (eventName.endsWith(suffix)) {
+          eventName = eventName.slice(0, -suffix.length)
+          modifiers.unshift(modifier)
+          matched = true
+          break
+        }
       }
     }
 

@@ -6,12 +6,12 @@ const activeEffects = new Set()
 
 export function effect(fn, options = {}) {
   if (typeof fn !== 'function') {
-    throw new TypeError('effect() attend une fonction')
+    throw new TypeError('effect() expects a function')
   }
 
   const flushMode = options.flush ?? 'sync'
   if (flushMode !== 'sync' && flushMode !== 'microtask') {
-    throw new TypeError('effect() accepte flush: sync ou microtask')
+    throw new TypeError("effect() accepts flush: 'sync' or 'microtask'")
   }
 
   const dependencies = new Set()
@@ -71,7 +71,7 @@ export function effect(fn, options = {}) {
         runCount += 1
 
         if (runCount > MAX_RUNS_PER_UPDATE) {
-          throw new Error('Boucle réactive détectée dans un effect()')
+          throw new Error('Reactive loop detected in effect()')
         }
 
         runCleanup()

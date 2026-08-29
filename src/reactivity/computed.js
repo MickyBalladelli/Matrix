@@ -1,0 +1,164 @@
+import { getCurrentRenderState, getCurrentScope, runWithObserver } from './context.js'
+import { createSource, notifySource, subscribeSource, trackSource } from './source.js'
+
+export function computed(fn, options = {}) {
+  const renderState = getCurrentRenderState()
+  if (renderState?.isRendering) {
+    const slot = renderState.stateCursor
+    renderState.stateCursor += 1
+    const existing = renderState.stateSlots[slot]
+
+    if (existing) {
+      if (existing.kind !== 'computed') {
+        throw new Error(`Ordre des états local instable à la position ${slot}`)
+      }
+      return existing.value
+    }
+
+    const value = createComputed(fn, options)
+    renderState.stateSlots[slot] = { kind: 'computed', value }
+    return value
+  }
+
+  return createComputed(fn, options)
+}
+
+function createComputed(fn, options) {
+  const getter = typeof fn === 'function' ? fn : fn?.get
+  const setter = fn && typeof fn === 'object' ? fn.set : undefined
+
+  if (typeof getter !== 'function') {
+    throw new TypeError('computed() attend une fonction')
+  }
+  if (setter !== undefined && typeof setter !== 'function') {
+    throw new TypeError('computed() attend un setter valide')
+  }
+
+  const equals = options.equals ?? Object.is
+  const source = createSource('computed')
+  const dependencies = new Set()
+  let value
+  let dirty = true
+  let computing = false
+  let disposed = false
+
+  const observer = {
+    kind: 'computed',
+    dependencies,
+    _notify() {
+      if (disposed || dirty) {
+        return
+      }
+
+      dirty = true
+
+      if (source.subscribers.size === 0 && source.listeners.size === 0) {
+        return
+      }
+
+      const previousValue = value
+      recompute()
+
+      if (!equals(previousValue, value)) {
+        notifySource(source, value, previousValue)
+      }
+    }
+  }
+
+  function removeDependencies() {
+    for (const dependency of dependencies) {
+      dependency.subscribers.delete(observer)
+    }
+
+    dependencies.clear()
+  }
+
+  function recompute() {
+    if (!dirty || disposed) {
+      return value
+    }
+
+    if (computing) {
+      throw new Error('Boucle de calcul détectée dans un computed()')
+    }
+
+    computing = true
+    removeDependencies()
+
+    try {
+      const nextValue = runWithObserver(observer, getter)
+      value = nextValue
+      dirty = false
+    } finally {
+      computing = false
+    }
+
+    return value
+  }
+
+  const api = {
+    get value() {
+      if (disposed) {
+        throw new Error('Impossible de lire un computed détruit')
+      }
+
+      trackSource(source)
+      return recompute()
+    },
+
+    get() {
+      return api.value
+    },
+
+    set value(nextValue) {
+      if (!setter) {
+        throw new TypeError('Ce computed est en lecture seule')
+      }
+
+      setter(nextValue)
+    },
+
+    set(nextValue) {
+      api.value = nextValue
+      return api.value
+    },
+
+    peek() {
+      return recompute()
+    },
+
+    subscribe(listener) {
+      return subscribeSource(source, listener)
+    },
+
+    get kind() {
+      return source.kind
+    },
+
+    get name() {
+      return options.name ?? ''
+    },
+
+    _source: source
+  }
+
+  function dispose() {
+    if (disposed) {
+      return
+    }
+
+    disposed = true
+    removeDependencies()
+    source.subscribers.clear()
+    source.listeners.clear()
+  }
+
+  api.dispose = dispose
+
+  const scope = getCurrentScope()
+  if (scope) {
+    scope.add(dispose)
+  }
+
+  return api
+}

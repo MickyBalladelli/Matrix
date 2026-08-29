@@ -1,0 +1,135 @@
+import { getCurrentScope, runWithObserver } from './context.js'
+import { scheduleJob } from './scheduler.js'
+
+const MAX_RUNS_PER_UPDATE = 100
+const activeEffects = new Set()
+
+export function effect(fn, options = {}) {
+  if (typeof fn !== 'function') {
+    throw new TypeError('effect() attend une fonction')
+  }
+
+  const flushMode = options.flush ?? 'sync'
+  if (flushMode !== 'sync' && flushMode !== 'microtask') {
+    throw new TypeError('effect() accepte flush: sync ou microtask')
+  }
+
+  const dependencies = new Set()
+  let cleanup
+  let running = false
+  let stale = false
+  let stopped = false
+  let scheduled = false
+
+  const observer = {
+    kind: 'effect',
+    name: options.name ?? '',
+    dependencies,
+    _notify() {
+      if (stopped) {
+        return
+      }
+
+      if (running) {
+        stale = true
+        return
+      }
+
+      requestRun()
+    }
+  }
+
+  function removeDependencies() {
+    for (const dependency of dependencies) {
+      dependency.subscribers.delete(observer)
+    }
+
+    dependencies.clear()
+  }
+
+  function runCleanup() {
+    if (typeof cleanup !== 'function') {
+      return
+    }
+
+    const previousCleanup = cleanup
+    cleanup = undefined
+    previousCleanup()
+  }
+
+  function runNow() {
+    if (stopped || running) {
+      return
+    }
+
+    running = true
+    let runCount = 0
+
+    try {
+      do {
+        stale = false
+        runCount += 1
+
+        if (runCount > MAX_RUNS_PER_UPDATE) {
+          throw new Error('Boucle réactive détectée dans un effect()')
+        }
+
+        runCleanup()
+        removeDependencies()
+
+        const nextCleanup = runWithObserver(observer, fn)
+        if (typeof nextCleanup === 'function') {
+          cleanup = nextCleanup
+        }
+      } while (stale && !stopped)
+    } finally {
+      running = false
+    }
+  }
+
+  function requestRun() {
+    if (scheduled || stopped) {
+      return
+    }
+
+    scheduled = true
+    scheduleJob(() => {
+      scheduled = false
+      runNow()
+    }, flushMode)
+  }
+
+  function stop() {
+    if (stopped) {
+      return
+    }
+
+    stopped = true
+    scheduled = false
+    runCleanup()
+    removeDependencies()
+
+    if (removeFromScope) {
+      removeFromScope()
+    }
+
+    activeEffects.delete(observer)
+  }
+
+  const scope = getCurrentScope()
+  const removeFromScope = scope ? scope.add(stop) : null
+
+  try {
+    activeEffects.add(observer)
+    runNow()
+  } catch (error) {
+    stop()
+    throw error
+  }
+
+  return stop
+}
+
+export function getActiveEffects() {
+  return [...activeEffects]
+}

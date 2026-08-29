@@ -1,0 +1,16 @@
+{
+  "name": "matrix-vite-app-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "matrix": "file:../.."
+  },
+  "devDependencies": {
+    "vite": "^8.2.2"
+  }
+}

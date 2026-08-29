@@ -1,0 +1,104 @@
+import { getCurrentScope, runWithScope } from './context.js'
+
+function runCleanup(cleanup) {
+  if (typeof cleanup === 'function') {
+    cleanup()
+  }
+}
+
+export function createScope(parent = getCurrentScope()) {
+  const children = new Set()
+  const cleanups = new Set()
+
+  let disposed = false
+
+  const scope = {
+    get disposed() {
+      return disposed
+    },
+
+    run(fn) {
+      if (disposed) {
+        throw new Error('Impossible d’utiliser un scope détruit')
+      }
+
+      return runWithScope(scope, fn)
+    },
+
+    add(cleanup) {
+      if (typeof cleanup !== 'function') {
+        throw new TypeError('Un nettoyage doit être une fonction')
+      }
+
+      if (disposed) {
+        runCleanup(cleanup)
+        return () => {}
+      }
+
+      cleanups.add(cleanup)
+
+      return () => {
+        cleanups.delete(cleanup)
+      }
+    },
+
+    dispose() {
+      if (disposed) {
+        return
+      }
+
+      disposed = true
+
+      for (const child of [...children]) {
+        child.dispose()
+      }
+      children.clear()
+
+      let firstError
+
+      for (const cleanup of [...cleanups]) {
+        cleanups.delete(cleanup)
+
+        try {
+          runCleanup(cleanup)
+        } catch (error) {
+          firstError ??= error
+        }
+      }
+
+      if (parent) {
+        parent._children.delete(scope)
+      }
+
+      if (firstError) {
+        throw firstError
+      }
+    },
+
+    _children: children
+  }
+
+  if (parent) {
+    parent._children.add(scope)
+  }
+
+  return scope
+}
+
+export function disposeScope(scope) {
+  if (!scope || typeof scope.dispose !== 'function') {
+    throw new TypeError('disposeScope attend un scope valide')
+  }
+
+  scope.dispose()
+}
+
+export function onCleanup(cleanup) {
+  const scope = getCurrentScope()
+
+  if (!scope) {
+    throw new Error('onCleanup() doit être appelé dans un scope actif')
+  }
+
+  return scope.add(cleanup)
+}

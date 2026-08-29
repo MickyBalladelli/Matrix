@@ -1,0 +1,256 @@
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { batch, computed, createScope, effect, signal } from '../src/index.js'
+
+test('signal et effect suivent une dépendance', () => {
+  const count = signal(0)
+  const values = []
+  const stop = effect(() => values.push(count.value))
+
+  count.value = 1
+  stop()
+  count.value = 2
+
+  assert.deepEqual(values, [0, 1])
+})
+
+test('signal accepte une comparaison personnalisée', () => {
+  const source = signal({ count: 0 }, { equals: (left, right) => left.count === right.count })
+  let runs = 0
+
+  effect(() => {
+    source.value
+    runs += 1
+  })
+
+  source.value = { count: 0 }
+  source.value = { count: 1 }
+
+  assert.equal(runs, 2)
+})
+
+test('signal respecte Object.is pour NaN, 0 et -0', () => {
+  const source = signal(NaN)
+  let runs = 0
+
+  effect(() => {
+    source.value
+    runs += 1
+  })
+
+  source.value = NaN
+  source.value = -0
+  source.value = 0
+
+  assert.equal(runs, 3)
+})
+
+test('plusieurs Effects reçoivent la même mise à jour', () => {
+  const source = signal(0)
+  let firstRuns = 0
+  let secondRuns = 0
+
+  effect(() => {
+    source.value
+    firstRuns += 1
+  })
+  effect(() => {
+    source.value
+    secondRuns += 1
+  })
+
+  source.value = 1
+
+  assert.equal(firstRuns, 2)
+  assert.equal(secondRuns, 2)
+})
+
+test('les dépendances conditionnelles sont retirées', () => {
+  const enabled = signal(true)
+  const first = signal('first')
+  const second = signal('second')
+  const values = []
+
+  effect(() => {
+    values.push(enabled.value ? first.value : second.value)
+  })
+
+  enabled.value = false
+  first.value = 'ignored'
+  second.value = 'used'
+
+  assert.deepEqual(values, ['first', 'second', 'used'])
+})
+
+test('computed est cache et se recalcule après invalidation', () => {
+  const source = signal(2)
+  let runs = 0
+  const doubled = computed(() => {
+    runs += 1
+    return source.value * 2
+  })
+
+  assert.equal(runs, 0)
+  assert.equal(doubled.value, 4)
+  assert.equal(doubled.value, 4)
+  assert.equal(runs, 1)
+
+  source.value = 3
+  assert.equal(doubled.value, 6)
+  assert.equal(runs, 2)
+})
+
+test('les computed peuvent être imbriqués', () => {
+  const source = signal(2)
+  const doubled = computed(() => source.value * 2)
+  const label = computed(() => `value:${doubled.value}`)
+
+  assert.equal(label.value, 'value:4')
+  source.value = 4
+  assert.equal(label.value, 'value:8')
+})
+
+test('un computed peut déléguer son écriture', () => {
+  const source = signal(1)
+  const doubled = computed({
+    get: () => source.value * 2,
+    set: value => {
+      source.value = value / 2
+    }
+  })
+
+  doubled.value = 10
+  assert.equal(source.value, 5)
+  assert.equal(doubled.value, 10)
+})
+
+test('le nettoyage d’un Effect est appelé avant sa prochaine exécution', () => {
+  const source = signal(0)
+  const cleanups = []
+
+  effect(() => {
+    source.value
+    return () => cleanups.push(source.peek())
+  })
+
+  source.value = 1
+
+  assert.deepEqual(cleanups, [1])
+})
+
+test('batch regroupe les Effects', () => {
+  const first = signal(0)
+  const second = signal(0)
+  let runs = 0
+
+  effect(() => {
+    first.value
+    second.value
+    runs += 1
+  })
+
+  batch(() => {
+    first.value = 1
+    second.value = 1
+  })
+
+  assert.equal(runs, 2)
+})
+
+test('un scope dispose ses Effects', () => {
+  const scope = createScope()
+  const source = signal(0)
+  let runs = 0
+
+  scope.run(() => effect(() => {
+    source.value
+    runs += 1
+  }))
+
+  scope.dispose()
+  source.value = 1
+
+  assert.equal(runs, 1)
+})
+
+test('dispose retire les abonnements d’un signal', () => {
+  const source = signal(0)
+  const stop = effect(() => source.value)
+
+  source.dispose()
+
+  assert.equal(source._source.subscribers.size, 0)
+  assert.throws(() => source.value, /signal détruit/)
+  stop()
+})
+
+test('une erreur ne bloque pas les autres abonnés', () => {
+  const source = signal(0)
+  let safeRuns = 0
+
+  effect(() => {
+    if (source.value === 1) {
+      throw new Error('expected')
+    }
+  })
+  effect(() => {
+    source.value
+    safeRuns += 1
+  })
+
+  assert.throws(() => {
+    source.value = 1
+  }, /expected/)
+  assert.equal(safeRuns, 2)
+})
+
+test('les cycles réactifs sont limités', () => {
+  const source = signal(0)
+
+  assert.throws(() => {
+    effect(() => {
+      source.value
+      source.value += 1
+    })
+  }, /Boucle réactive détectée/)
+})
+
+test('un Effect peut créer un autre Effect', () => {
+  const outerSource = signal(false)
+  const innerSource = signal(0)
+  let innerRuns = 0
+  let stopInner
+
+  effect(() => {
+    if (outerSource.value && !stopInner) {
+      stopInner = effect(() => {
+        innerSource.value
+        innerRuns += 1
+      })
+    }
+  })
+
+  outerSource.value = true
+  innerSource.value = 1
+  stopInner?.()
+
+  assert.equal(innerRuns, 2)
+})
+
+test('une exception nettoie les dépendances de la tentative de calcul', () => {
+  const source = signal(0)
+  const other = signal(0)
+  let stop
+
+  assert.throws(() => {
+    stop = effect(() => {
+      source.value
+      other.value
+      throw new Error('expected')
+    })
+  }, /expected/)
+
+  assert.equal(source._source.subscribers.size, 0)
+  assert.equal(other._source.subscribers.size, 0)
+  stop?.()
+})

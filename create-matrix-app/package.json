@@ -1,0 +1,17 @@
+{
+  "name": "create-matrix-app",
+  "version": "0.0.1",
+  "description": "Create a Matrix app with Vite",
+  "type": "module",
+  "bin": {
+    "create-matrix-app": "./index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "template",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

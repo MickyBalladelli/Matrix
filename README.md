@@ -1,0 +1,141 @@
+# Matrix
+
+Matrix is a tiny reactive JavaScript framework. It uses signals, effects and computed states. It updates the DOM directly, with no Virtual DOM and no mandatory compiler.
+
+## Getting started
+
+Clone the repository, then import `src/index.js` from an ESM module. Matrix has no runtime dependencies.
+
+`npm run build` creates the browser ESM output in `dist/matrix.js`.
+
+## Create a Matrix app
+
+Create a standalone Matrix + Vite app:
+
+```bash
+npx create-matrix-app my-app
+cd my-app
+npm run dev
+```
+
+For local development in this repository, use:
+
+```bash
+npm run create-app -- examples/my-app
+```
+
+The generator creates `package.json`, `README.md`, `vite.config.js`, `index.html`, `src/main.jsx` and `src/style.css`. The generated app has its own Vite setup, automatic JSX support and imports Matrix as a package.
+
+The generated `vite.config.js` enables Matrix JSX:
+
+```js
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: 'matrix'
+  }
+})
+```
+
+## Example
+
+A complete Counter application lives in `examples/counter`. The TODO application lives in `examples/todo`.
+
+## Independent Matrix + Vite app
+
+The `examples/vite-app` directory is a standalone Matrix app. It has its own `package.json`, Vite commands and dependencies. It does not use the root project scripts. It also shows optional JSX support.
+
+Start the app from its directory:
+
+```bash
+cd examples/vite-app
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173/` in the browser.
+
+The app imports Matrix as a package and uses JSX:
+
+```jsx
+import { mount, signal } from 'matrix'
+
+const count = signal(0)
+const App = () => (
+  <button onClick={() => count.value++}>{count}</button>
+)
+
+mount(App, document.querySelector('#app'))
+```
+
+Use `onClick`, `onInput` and similar event names in JSX. `className` maps to `class`, and Matrix signals can be rendered directly with `{count}`.
+
+The example enables JSX in `vite.config.js` with Matrix’s automatic JSX runtime. Vite finds the local `index.html`, bundles the app and its Matrix dependency, and writes the production app to `dist/` inside the example:
+
+```bash
+npm run build
+npm run preview
+```
+
+```js
+import { computed, effect, html, mount, signal } from './src/index.js'
+
+const count = signal(0)
+const doubled = computed(() => count.value * 2)
+
+const App = () => html`
+  <main>
+    <p>${count} × 2 = ${doubled}</p>
+    <button @click=${() => count.update(value => value + 1)}>
+      Add
+    </button>
+  </main>
+`
+
+mount(App, document.querySelector('#app'))
+```
+
+## API
+
+- `signal(value)` creates reactive state with `.value`, `.set()`, `.update()` and `.subscribe()`.
+- `effect(fn)` runs a function and automatically tracks its signals.
+- `computed(fn)` calculates a lazy derived value.
+- `batch(fn)` groups several writes into one update.
+- `html` creates a DOM template with dynamic text, attributes, properties and events.
+- `component(fn, props)` creates an explicit functional component.
+- `mount(view, element)` mounts a view and returns `unmount()`.
+- `css`, `cssVariables` and `globalCss` provide lightweight styling.
+- `createRouter` and `routerView` provide minimal History API navigation.
+- `createForm` and `resource` cover common needs without entering the core.
+- `usePlugin` observes the renderer, scheduler, logs and styles.
+
+## DOM directives
+
+```js
+import { css, cssVariables, html, signal } from './src/index.js'
+
+const color = signal('tomato')
+const card = css`.card { color: var(--card-color) }`
+const vars = cssVariables({ '--card-color': color })
+
+const view = html`
+  <article use:style=${card} use:vars=${vars} class="card">
+    <input use:bind=${color}>
+  </article>
+`
+```
+
+- `@click=${handler}` listens for an event.
+- `.value=${source}` binds a DOM property.
+- `?disabled=${source}` handles a boolean attribute.
+- `use:style=${cssDefinition}` applies scoped styling.
+- `use:vars=${cssVariables({...})}` binds CSS variables to signals.
+- `use:bind=${signal}` synchronizes a form field.
+
+To delay form writes, use `use:bind=${{ source: email, debounce: 150 }}`.
+
+## Status
+
+The project is alpha. The reactive core and DOM renderer are operational. The router, forms, styles and DX tools are intentionally small.

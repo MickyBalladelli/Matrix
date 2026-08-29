@@ -1,0 +1,41 @@
+{
+  "name": "matrix",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "types": "./types/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "src",
+    "types",
+    "dist",
+    "docs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "create-app": "node create-matrix-app/index.mjs",
+    "size": "node scripts/size.mjs",
+    "test": "node --test",
+    "bench": "node bench/reactivity.js"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./reactivity": "./src/reactivity/index.js",
+    "./components": "./src/components/index.js",
+    "./dom": "./src/dom/index.js",
+    "./jsx-runtime": {
+      "types": "./types/jsx-runtime.d.ts",
+      "import": "./src/jsx-runtime.js"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./types/jsx-dev-runtime.d.ts",
+      "import": "./src/jsx-dev-runtime.js"
+    },
+    "./styles": "./src/styles/index.js",
+    "./utils": "./src/utils/index.js",
+    "./plugins": "./src/plugins.js"
+  }
+}

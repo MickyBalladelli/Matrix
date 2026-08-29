@@ -81,7 +81,7 @@ assert(count.value === '3', 'Le binding input doit écrire dans le signal')
 
 accent.value = 'blue'
 assert(host.querySelector('[data-matrix-scope]'), 'Scoped style must add a scope')
-assert(host.querySelector('style[data-matrix-style]'), 'Style must be injected')
+assert(document.querySelector('style[data-matrix-style]'), 'Style must be injected')
 assert(host.querySelector('.box').style.getPropertyValue('--accent') === 'blue', 'La variable CSS doit être réactive')
 
 app.unmount()
@@ -230,7 +230,7 @@ pseudoApp.unmount()
 const themeMode = signal('light')
 const surface = computed(() => themeMode.value === 'light' ? '#fff' : '#111')
 const themeApp = mount(() => html`<div use:vars=${cssVariables({ '--surface': surface })}>theme</div>`, host)
-const themeNode = host.querySelector('[style]')
+const themeNode = themeApp.nodes.find(node => node.nodeName === 'DIV')
 assert(themeNode.style.getPropertyValue('--surface') === '#fff', 'Le thème initial doit être appliqué')
 themeMode.value = 'dark'
 assert(themeNode.style.getPropertyValue('--surface') === '#111', 'Le changement de thème doit être réactif')
@@ -238,7 +238,7 @@ themeApp.unmount()
 
 const nullable = signal(null)
 const valuesApp = mount(() => html`<div use:vars=${cssVariables({ '--nullable': nullable, '--empty': '' })}>values</div>`, host)
-const valuesNode = host.querySelector('[style]')
+const valuesNode = valuesApp.nodes.find(node => node.nodeName === 'DIV')
 assert(valuesNode.style.getPropertyValue('--nullable') === '', 'Une variable null doit être retirée')
 nullable.value = 'ok'
 assert(valuesNode.style.getPropertyValue('--nullable') === 'ok', 'Une variable vide doit pouvoir devenir valide')

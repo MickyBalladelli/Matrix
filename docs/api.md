@@ -37,13 +37,26 @@ The optional `@mickyballadelli/matrix/jsx-runtime` adapter supports JSX elements
 ```js
 import { defineConfig } from 'vite'
 
+const matrixJsx = {
+  runtime: 'automatic',
+  importSource: '@mickyballadelli/matrix'
+}
+
 export default defineConfig({
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: '@mickyballadelli/matrix'
+  oxc: {
+    jsx: matrixJsx
+  },
+  optimizeDeps: {
+    rolldownOptions: {
+      transform: {
+        jsx: matrixJsx
+      }
+    }
   }
 })
 ```
+
+Vite 8 uses Oxc for transforms and dependency scanning. Set both `oxc.jsx` and `optimizeDeps.rolldownOptions.transform.jsx`, or the scanner falls back to `react/jsx-dev-runtime`.
 
 Then write JSX in `.jsx` files:
 
@@ -97,6 +110,18 @@ Dynamic `javascript:`, `vbscript:` and `data:` URLs are rejected in URL attribut
 - `cssVariables` creates static or reactive CSS variables.
 - `disposeStyle(definition, document?)` explicitly removes an injected stylesheet.
 - `defaultTokens`, `tokens`, `theme` and `utilityCss` provide optional visual primitives.
+
+## Experimental APIs
+
+These surfaces may change before 1.0:
+
+- JSX runtime keys, event modifiers, and automatic runtime configuration.
+- Router `search`, `hash`, `base`, redirects, and async guards.
+- Plugin extension points.
+- `defaultTokens`, `tokens`, `theme`, and `utilityCss`.
+- Debug helpers: `createLogger`, `watchDebug`, `inspect`, `inspectEffects`, and `setDevtoolsHook`.
+
+Stable for this alpha: `signal`, `computed`, `effect`, `batch`, `html`, `component`, `mount`, `css`, `cssVariables`, and `keyed`.
 
 ## Lightweight plugins
 

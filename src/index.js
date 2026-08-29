@@ -1,3 +1,10 @@
+const runtimeKey = Symbol.for('@mickyballadelli/matrix.runtime')
+const previousRuntime = globalThis[runtimeKey]
+if (typeof previousRuntime === 'string' && previousRuntime !== import.meta.url) {
+  console.warn('Multiple @mickyballadelli/matrix runtimes are loaded. Keep a single instance.')
+}
+globalThis[runtimeKey] = import.meta.url
+
 export {
   batch,
   computed,

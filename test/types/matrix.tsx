@@ -24,7 +24,12 @@ const Counter = ({ value }: { value: Signal<number> }): ComponentResult => compo
 `)
 
 const view = <Counter value={count} />
-const input = <input aria-label="Count" value={count} onInput={event => event.currentTarget.value} />
+const input = <input aria-label="Count" value={String(count.value)} onInput={event => {
+  const target = event.currentTarget
+  if (target instanceof HTMLInputElement) {
+    target.value
+  }
+}} />
 
 batch(() => count.set(2))
 resource(async (_signal?: AbortSignal) => 1)

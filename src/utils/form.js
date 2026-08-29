@@ -169,6 +169,8 @@ export function createForm(initialValues = {}, validators = {}) {
     errors.value = {}
   }
 
+  validate()
+
   return {
     fields,
     values,

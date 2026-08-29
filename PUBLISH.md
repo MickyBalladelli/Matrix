@@ -1,10 +1,27 @@
 # Publish Matrix
 
-Matrix publishes as `@mickyballadelli/matrix`. The first release uses the `next` npm tag.
+Matrix publishes as `@mickyballadelli/matrix`. Prereleases use the `next` npm tag (not `latest`).
 
-## Direct publish
+Publish yourself from the repository root. Do not use the GitHub workflow unless you intentionally want trusted publishing.
 
-Run from the repository root:
+## Preflight
+
+```bash
+npm test
+npm run test:types
+npm run test:browser
+npm run test:package
+```
+
+Bump the version only when needed. Do not let npm create a git commit or tag:
+
+```bash
+npm version prerelease --preid=alpha --no-git-tag-version
+```
+
+Update `CHANGELOG.md` and the `create-matrix-app` template dependency to match before publishing.
+
+## Publish
 
 ```bash
 npm login --cache /private/tmp/matrix-npm-cache
@@ -13,8 +30,10 @@ npm whoami --cache /private/tmp/matrix-npm-cache
 npm pack --dry-run --cache /private/tmp/matrix-npm-cache
 npm publish --access public --tag next --cache /private/tmp/matrix-npm-cache
 
-npm view @mickyballadelli/matrix@0.1.0-alpha.0 --cache /private/tmp/matrix-npm-cache
+npm view @mickyballadelli/matrix@version --cache /private/tmp/matrix-npm-cache
 ```
+
+Replace `version` in the last command with the exact version from `package.json` (currently `0.1.0-alpha.1`).
 
 `prepack` rebuilds `dist` and checks every export before npm creates the package.
 
@@ -24,23 +43,9 @@ Install the alpha with:
 npm install @mickyballadelli/matrix@next
 ```
 
-## Change the version
-
-Do not let npm create a git commit or tag:
-
-```bash
-npm version prerelease --preid=alpha --no-git-tag-version
-```
-
-Update `CHANGELOG.md` and the generator template version before publishing.
-
-## Trusted publish
-
-The manual GitHub workflow in `.github/workflows/publish.yml` uses npm trusted publishing and provenance. Configure this repository and workflow as a trusted publisher in npm before running it.
-
 ## Publish create-matrix-app
 
-Publish Matrix first. Then run:
+Publish Matrix first. Then:
 
 ```bash
 cd create-matrix-app
@@ -62,7 +67,11 @@ npm run build
 After a clean Prism Vercel deployment uses the exact alpha successfully:
 
 ```bash
-npm dist-tag add @mickyballadelli/matrix@0.1.0-alpha.0 latest
+npm dist-tag add @mickyballadelli/matrix@0.1.0-alpha.1 latest
 ```
 
 Prefer publishing a stable version instead of promoting an alpha when public users are expected.
+
+## Optional: trusted publish
+
+The manual GitHub workflow in `.github/workflows/publish.yml` uses npm trusted publishing and provenance. Configure this repository and workflow as a trusted publisher in npm before running it. Prefer the direct commands above for the first releases.

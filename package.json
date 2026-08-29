@@ -1,6 +1,6 @@
 {
   "name": "@mickyballadelli/matrix",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Tiny fine-grained reactive JavaScript framework with an optional JSX runtime",
   "type": "module",
   "license": "MIT",
@@ -41,7 +41,7 @@
     "prepack": "npm run build && node scripts/check-package.mjs",
     "create-app": "node create-matrix-app/index.mjs",
     "size": "node scripts/size.mjs",
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
     "test:browser": "node test/run-browser-tests.mjs",
     "test:types": "tsc -p test/types/tsconfig.json",
     "test:package": "node scripts/package-smoke.mjs",

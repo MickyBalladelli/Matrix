@@ -22,10 +22,21 @@ npm install prism-ui @mickyballadelli/matrix@next
 Vite JSX configuration:
 
 ```js
+const matrixJsx = {
+  runtime: 'automatic',
+  importSource: '@mickyballadelli/matrix'
+}
+
 export default {
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: '@mickyballadelli/matrix'
+  oxc: {
+    jsx: matrixJsx
+  },
+  optimizeDeps: {
+    rolldownOptions: {
+      transform: {
+        jsx: matrixJsx
+      }
+    }
   },
   resolve: {
     dedupe: ['@mickyballadelli/matrix']

@@ -1,5 +1,9 @@
 # Migration guide
 
+## Package name
+
+Install `@mickyballadelli/matrix`. Replace imports and JSX `importSource` / `jsxImportSource` values that used the unscoped name `matrix`. On Vite 8, set `oxc.jsx.importSource` and `optimizeDeps.rolldownOptions.transform.jsx.importSource` to `@mickyballadelli/matrix`.
+
 ## From manual DOM rendering
 
 1. Replace a mutable variable with `signal(value)`.

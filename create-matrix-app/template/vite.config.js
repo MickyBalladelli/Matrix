@@ -1,8 +1,19 @@
 import { defineConfig } from 'vite'
 
+const matrixJsx = {
+  runtime: 'automatic',
+  importSource: '@mickyballadelli/matrix'
+}
+
 export default defineConfig({
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: '@mickyballadelli/matrix'
+  oxc: {
+    jsx: matrixJsx
+  },
+  optimizeDeps: {
+    rolldownOptions: {
+      transform: {
+        jsx: matrixJsx
+      }
+    }
   }
 })

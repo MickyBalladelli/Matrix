@@ -36,6 +36,14 @@ try {
   for (const browserType of [chromium, firefox, webkit]) {
     const browser = await browserType.launch()
     const page = await browser.newPage()
+    page.on('console', message => {
+      if (message.type() === 'error') {
+        console.error(`${browserType.name()} console: ${message.text()}`)
+      }
+    })
+    page.on('pageerror', error => {
+      console.error(`${browserType.name()} pageerror: ${error.stack || error.message}`)
+    })
     await page.goto(`http://127.0.0.1:${port}/test/dom.browser.html`)
     await page.waitForFunction(() => window.__MATRIX_TEST_RESULT__ === 'passed')
     await browser.close()

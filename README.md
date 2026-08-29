@@ -21,7 +21,7 @@ import { computed, effect, html, mount, signal } from '@mickyballadelli/matrix'
 Create a standalone Matrix + Vite app:
 
 ```bash
-npx create-matrix-app my-app
+npx create-matrix-app@next my-app
 cd my-app
 npm run dev
 ```

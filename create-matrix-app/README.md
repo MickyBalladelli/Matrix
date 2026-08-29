@@ -3,10 +3,12 @@
 Create a Matrix app with Vite and JSX:
 
 ```bash
-npx create-matrix-app my-app
+npx create-matrix-app@next my-app
 cd my-app
 npm run dev
 ```
+
+Until the first npm release is published, that command returns E404.
 
 The generated app contains:
 
@@ -22,10 +24,21 @@ JSX is enabled automatically through Matrix's JSX runtime:
 ```js
 import { defineConfig } from 'vite'
 
+const matrixJsx = {
+  runtime: 'automatic',
+  importSource: '@mickyballadelli/matrix'
+}
+
 export default defineConfig({
-  esbuild: {
-    jsx: 'automatic',
-    jsxImportSource: '@mickyballadelli/matrix'
+  oxc: {
+    jsx: matrixJsx
+  },
+  optimizeDeps: {
+    rolldownOptions: {
+      transform: {
+        jsx: matrixJsx
+      }
+    }
   }
 })
 ```

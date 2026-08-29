@@ -37,7 +37,7 @@ Review date: 2026-08-29
 - [ ] Verify the published package with `npm view`, install the exact published version in a clean fixture, then promote the tag only after Prism works on Vercel.
 - [ ] Publish `create-matrix-app` after Matrix. The unscoped `create-matrix-app` name is unused at review time, but ownership must still be checked before release.
 - [x] Update the generator template dependency to the final Matrix name and version.
-- [x] Update `create-matrix-app/index.mjs`; its local-project detection and dependency rewrite are hard-coded to the name `matrix`.
+- [x] Update `create-matrix-app/index.js`; its local-project detection and dependency rewrite are hard-coded to the name `matrix`.
 - [ ] Pack and inspect `create-matrix-app`, then create one app outside this repository and confirm it installs only registry dependencies.
 
 Publish commands after the package cleanup above is complete:

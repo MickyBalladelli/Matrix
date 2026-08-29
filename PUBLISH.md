@@ -58,9 +58,9 @@ Confirm the generator template points to the published Matrix version. Then crea
 
 ```bash
 npx create-matrix-app@next my-app
-cd my-app
-npm run build
 ```
+
+Until `create-matrix-app` is published, `npx create-matrix-app` returns E404. Use `@next` after the first prerelease publish.
 
 ## Promote after Prism works
 

@@ -15,10 +15,10 @@
     "url": "https://github.com/MickyBalladelli/Matrix/issues"
   },
   "bin": {
-    "create-matrix-app": "./index.mjs"
+    "create-matrix-app": "./index.js"
   },
   "files": [
-    "index.mjs",
+    "index.js",
     "template",
     "README.md"
   ],

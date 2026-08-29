@@ -39,7 +39,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "prepack": "npm run build && node scripts/check-package.mjs",
-    "create-app": "node create-matrix-app/index.mjs",
+    "create-app": "node create-matrix-app/index.js",
     "size": "node scripts/size.mjs",
     "test": "node --test test/*.test.js",
     "test:browser": "node test/run-browser-tests.mjs",

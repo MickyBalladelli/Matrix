@@ -2,7 +2,7 @@
 
 Matrix is ESM-only.
 
-- Published package checks: Node 20 and Node 22.
+- Supported runtime: Node 18 and newer.
 - Browser checks: current Chromium, Firefox, and WebKit.
 - Bundlers: Vite with automatic JSX runtime, or any ESM bundler for tagged templates.
 - Direct browser use: `dist/matrix.js` from a trusted host.

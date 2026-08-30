@@ -43,9 +43,12 @@
     "size": "node scripts/size.mjs",
     "test": "node --test test/*.test.js",
     "test:browser": "node test/run-browser-tests.mjs",
+    "test:performance": "node scripts/check-performance.mjs",
     "test:types": "tsc -p test/types/tsconfig.json",
     "test:package": "node scripts/package-smoke.mjs",
-    "bench": "node bench/reactivity.js"
+    "bench": "node bench/reactivity.js",
+    "verify:release": "node scripts/verify-release.mjs",
+    "prepublishOnly": "npm run verify:release"
   },
   "exports": {
     ".": {

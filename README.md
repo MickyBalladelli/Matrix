@@ -16,6 +16,8 @@ import { computed, effect, html, mount, signal } from '@mickyballadelli/matrix'
 
 `npm run build` creates the browser ESM output in `dist/matrix.js`.
 
+Before release, run `npm run verify:release`. It checks Node behavior, types, Chromium/Firefox/WebKit, package exports, performance budgets and bundle size.
+
 ## Create a Matrix app
 
 Create a standalone Matrix + Vite app:

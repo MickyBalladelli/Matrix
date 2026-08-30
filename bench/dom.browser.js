@@ -49,7 +49,22 @@ const replacement = measure('full replacement reference', () => {
   app.unmount()
 })
 
-console.table([initial, update, list, keyedUpdate, replacement])
+const measurements = [initial, update, list, keyedUpdate, replacement].map(({ name, milliseconds }) => ({
+  name,
+  milliseconds
+}))
+
+console.table(measurements)
 initial.result.unmount()
 list.result.unmount()
+
+window.__MATRIX_BENCHMARK_RESULT__ = {
+  measurements,
+  domOperations: {
+    singleSignalUpdate: update.domOperations,
+    keyedReorder: keyedUpdate.domOperations
+  },
+  userAgent: navigator.userAgent
+}
+
 document.body.dataset.matrixBenchmarks = 'ready'

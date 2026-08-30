@@ -1,5 +1,6 @@
 import { performance } from 'node:perf_hooks'
 import { effect, signal } from '../src/index.js'
+import { performanceBudgets } from './performance-budgets.js'
 
 const count = signal(0)
 let reads = 0
@@ -35,11 +36,32 @@ const subscribers = [1, 10, 100, 1000].map(size => {
   }
 })
 
-console.log(JSON.stringify({
+const result = {
   iterations,
   reads,
   milliseconds: Number(elapsed.toFixed(2)),
   heapDeltaBytes: memoryAfter - memoryBefore,
   updatesPerSecond: Math.round(iterations / (elapsed / 1000)),
   subscribers
-}, null, 2))
+}
+
+console.log(JSON.stringify(result, null, 2))
+
+if (process.argv.includes('--check')) {
+  const failures = []
+
+  if (result.updatesPerSecond < performanceBudgets.reactivity.minUpdatesPerSecond) {
+    failures.push(`updatesPerSecond ${result.updatesPerSecond} < ${performanceBudgets.reactivity.minUpdatesPerSecond}`)
+  }
+
+  const slowSubscriber = result.subscribers.find(({ milliseconds }) => (
+    milliseconds > performanceBudgets.reactivity.maxSubscriberUpdateMilliseconds
+  ))
+  if (slowSubscriber) {
+    failures.push(`subscriber update for ${slowSubscriber.size} effects took ${slowSubscriber.milliseconds}ms`)
+  }
+
+  if (failures.length > 0) {
+    throw new Error(`Reactivity performance budget exceeded: ${failures.join('; ')}`)
+  }
+}

@@ -26,6 +26,8 @@
 
 Reproducible benchmarks live in `bench/reactivity.js` and `bench/dom.browser.js`. The second measures mounting, one update, a keyed list and a full replacement reference. DOM measurements must use a real DOM, not only the reactive engine.
 
+`npm run test:performance` checks both benchmarks against the budgets in `bench/performance-budgets.js`. It runs the DOM benchmark in Chromium, Firefox and WebKit and fails on a budget regression. Set `MATRIX_BROWSER` or pass `--browser` to the browser benchmark runner when investigating one engine.
+
 `npm run size` bundles each public entry with esbuild, records minified, gzip, and Brotli bytes, and fails when a checked-in Brotli budget is exceeded.
 
 `npm run bench` measures the reactive engine. Keep results in a release note with the machine, browser or Node version used. External comparisons remain optional until the protocol is identical.

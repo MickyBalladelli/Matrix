@@ -21,10 +21,10 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Test very large keyed lists (10k+ items) for performance and memory
 
 ### Browser test automation
-- [ ] Add browser tests (Chromium, Firefox, WebKit)
+- [x] Add browser tests (Chromium, Firefox, WebKit)
 - [ ] Add test coverage for Node 18, 20, 22
-- [ ] Verify browser test suite runs before release
-- [ ] Add performance regression testing
+- [x] Verify browser test suite runs before release
+- [x] Add performance regression testing
 
 ### Type safety
 - [ ] Run TypeScript strict mode on entire codebase
@@ -137,7 +137,7 @@ Published on npm: @mickyballadelli/matrix@next
 
 ### Regression prevention
 - [ ] Lock size budgets with 2% tolerance before release
-- [ ] Add performance regression detection in CI
+- [ ] Add performance regression history tracking
 - [ ] Benchmark before and after every optimization attempt
 - [ ] Keep detailed performance notes for each version
 - [ ] Create public performance dashboard or tracking
@@ -260,7 +260,7 @@ Published on npm: @mickyballadelli/matrix@next
 
 1. **Stability (Weeks 1-2)**
    - Add memory leak tests
-   - Browser test automation in CI
+   - Browser test automation
    - Type strictness verification
    - Error boundary edge cases
 

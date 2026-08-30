@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.1 — 2026-08-30
+
+Patch release fixing a reactive loop that could crash apps during dynamic content updates (notably Prism `Background` and similar patterns).
+
+- Stop dynamic-value effects from tracking signals read while rendering replacement content, which prevented `onMount` writes from looping the parent effect.
+- Skip no-op dynamic replacements and reuse updatable component instances when identity is unchanged.
+- Cache `routerView` results per route view and params so navigation does not recreate identical component trees.
+- Add a browser regression covering the polluted-dependency loop pattern.
+- No public API or migration changes; upgrade by installing `@mickyballadelli/matrix@1.0.1`.
+
+
 ## 1.0.0 — 2026-08-30
 
 - Promote Matrix to the first stable release as `@mickyballadelli/matrix`.

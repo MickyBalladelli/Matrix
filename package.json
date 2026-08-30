@@ -1,6 +1,6 @@
 {
   "name": "@mickyballadelli/matrix",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tiny fine-grained reactive JavaScript framework with an optional JSX runtime",
   "type": "module",
   "license": "MIT",

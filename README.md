@@ -2,6 +2,11 @@
 
 Matrix is a tiny reactive JavaScript framework. It uses signals, effects and computed states. It updates the DOM directly, with no Virtual DOM and no mandatory compiler.
 
+[![npm version](https://img.shields.io/npm/v/%40mickyballadelli%2Fmatrix?logo=npm)](https://www.npmjs.com/package/@mickyballadelli/matrix)
+[![npm downloads](https://img.shields.io/npm/dm/%40mickyballadelli%2Fmatrix?logo=npm)](https://www.npmjs.com/package/@mickyballadelli/matrix)
+[![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 ## Getting started
 
 Install Matrix from npm. Matrix is ESM-only and has no runtime dependencies.

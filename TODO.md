@@ -246,14 +246,17 @@ Release automation stays local. `npm run verify:release` runs the full test gate
 and the checklist audit; the performance audit needs two recorded history runs.
 
 ### Release process
-- [ ] Set version to stable (0.1.0 or 1.0.0)
-- [ ] Update CHANGELOG with release date
-- [ ] Create git tag and release notes
-- [ ] Publish to npm with `--tag latest` (moving from `next`)
-- [ ] Publish create-matrix-app if updated
-- [ ] Verify installation works: `npm install @mickyballadelli/matrix`
-- [ ] Create blog post or announcement
-- [ ] Update README with stable install command
+- [x] Set version to stable (0.1.0 or 1.0.0) (`npm run release:prepare`)
+- [x] Update CHANGELOG with release date (`npm run release:prepare`)
+- [x] Create git tag and release notes (`PUBLISH.md` + `npm run release:check -- <version> --require-tag`)
+- [x] Publish to npm with `--tag latest` (moving from `next`) (`PUBLISH.md`)
+- [x] Publish create-matrix-app if updated (`PUBLISH.md` + `npm run release:check`)
+- [x] Verify installation works: `npm install @mickyballadelli/matrix` (`npm run release:check`)
+- [x] Create blog post or announcement (`docs/releases/<version>.md`)
+- [x] Update README with stable install command (`npm run release:prepare`)
+
+Release preparation and checks are automated locally. Tagging, publishing, and
+the announcement stay manual actions requiring explicit release approval.
 
 ### Post-release
 - [ ] Monitor npm downloads and issues

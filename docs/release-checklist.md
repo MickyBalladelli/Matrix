@@ -37,3 +37,6 @@ npm run bench:record -- --phase after --change <name> --check
 
 The audit does not publish, commit, or change GitHub settings. It may rebuild
 `dist` as part of `npm pack --dry-run`.
+
+For stable version preparation, tagging, publishing, installation verification,
+and announcements, follow [PUBLISH.md](../PUBLISH.md).

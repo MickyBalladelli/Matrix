@@ -1,82 +1,122 @@
 # Publish Matrix
 
-Matrix publishes as `@mickyballadelli/matrix`. Prereleases use the `next` npm tag (not `latest`).
+Release actions stay local and manual. No GitHub workflow publishes Matrix.
 
-Publish yourself from the repository root.
+Matrix prereleases use the `next` npm tag. Stable releases use `latest`.
+
+## Prepare a stable release
+
+Create `docs/releases/<version>.md` from `docs/releases/TEMPLATE.md`. Use a
+dated heading and real bullet points, then preview the changes:
+
+```bash
+npm run release:prepare -- 0.1.0 --date YYYY-MM-DD --notes-file docs/releases/0.1.0.md --dry-run
+```
+
+Run it without `--dry-run` when the notes are ready:
+
+```bash
+npm run release:prepare -- 0.1.0 --date YYYY-MM-DD --notes-file docs/releases/0.1.0.md
+```
+
+This updates the root package and lockfile, `create-matrix-app`, its Matrix
+template dependency, the changelog, and stable install examples. It does not
+create a commit, tag, npm release, or announcement.
 
 ## Preflight
 
+Keep the previous performance run in the repository, then run the full local
+gate:
+
 ```bash
+npm run bench:record -- --phase baseline --label 0.1.0
 npm run verify:release
+npm run release:check -- 0.1.0
 ```
 
-`verify:release` runs unit tests, strict type tests, Chromium/Firefox/WebKit tests, performance budgets, package smoke tests and size budgets. `npm publish` runs the same gate through `prepublishOnly`.
+`release:check` verifies stable metadata, dated release notes, stable install
+docs, the packed Matrix installation, the `create-matrix-app` package, and the
+optional tag. Add `--require-tag` after creating the tag.
 
-Record the release performance snapshot before publishing:
+## Create the tag and release notes
+
+After preflight passes, create and push the stable tag:
 
 ```bash
-npm run bench:record -- --phase baseline --label <version>
+git tag -a v0.1.0 -m "Matrix v0.1.0"
+git push origin v0.1.0
 ```
 
-This writes raw results to `bench/performance-history.json`. Keep the matching
-human note in `docs/performance-history.md` and publish `bench/dashboard.html`
-with the history file when public tracking is wanted.
-
-Bump the version only when needed. Do not let npm create a git commit or tag:
+Create the hosting-service release from `docs/releases/0.1.0.md`, or use the
+GitHub CLI if it is installed:
 
 ```bash
-npm version prerelease --preid=alpha --no-git-tag-version
+gh release create v0.1.0 --title "Matrix v0.1.0" --notes-file docs/releases/0.1.0.md
 ```
 
-Update `CHANGELOG.md` and the `create-matrix-app` template dependency to match before publishing.
+Verify the tag locally:
 
-## Publish
+```bash
+npm run release:check -- 0.1.0 --require-tag
+```
+
+## Publish Matrix as latest
+
+Log in with a project-scoped npm cache, publish the exact prepared version,
+then inspect the registry tag:
 
 ```bash
 npm login --cache /private/tmp/matrix-npm-cache
 npm whoami --cache /private/tmp/matrix-npm-cache
-
-npm pack --dry-run --cache /private/tmp/matrix-npm-cache
-npm publish --access public --tag next --cache /private/tmp/matrix-npm-cache
-
-npm view @mickyballadelli/matrix@version --cache /private/tmp/matrix-npm-cache
+npm publish --access public --tag latest --cache /private/tmp/matrix-npm-cache
+npm view @mickyballadelli/matrix@0.1.0 dist-tags version --cache /private/tmp/matrix-npm-cache
 ```
 
-Replace `version` in the last command with the exact version from `package.json` (currently `0.1.0-alpha.1`).
+`prepublishOnly` runs `npm run verify:release`. Never use `npm version` without
+`--no-git-tag-version` in this repository.
 
-`prepack` rebuilds `dist` and checks every export before npm creates the package.
+## Publish create-matrix-app when changed
 
-Install the alpha with:
-
-```bash
-npm install @mickyballadelli/matrix@next
-```
-
-## Publish create-matrix-app
-
-Publish Matrix first. Then:
+The stable preparation command synchronizes its version and template. Publish
+it only when the generator changed or its version was prepared:
 
 ```bash
 cd create-matrix-app
-npm version prerelease --preid=alpha --no-git-tag-version
 npm pack --dry-run --cache /private/tmp/matrix-npm-cache
+npm publish --access public --tag latest --cache /private/tmp/matrix-npm-cache
+npm view create-matrix-app@0.1.0 dist-tags version --cache /private/tmp/matrix-npm-cache
+cd ..
+```
+
+Verify the public generator after publishing:
+
+```bash
+npx create-matrix-app@latest release-smoke --no-install
+```
+
+Use a disposable directory outside this repository for that smoke app.
+
+## Verify installation and announce
+
+`npm run release:check -- 0.1.0` verifies the packed installation locally. After
+the registry publish, verify the public command too:
+
+```bash
+npm install @mickyballadelli/matrix
+npm install create-matrix-app
+```
+
+Share `docs/releases/0.1.0.md` as the blog post or announcement source. It
+already contains the user-facing changes, migration notes, and verification
+state collected for the release.
+
+## Prereleases
+
+For an alpha, keep the `next` tag and use the prerelease version command:
+
+```bash
+npm version prerelease --preid=alpha --no-git-tag-version
 npm publish --access public --tag next --cache /private/tmp/matrix-npm-cache
 ```
 
-Confirm the generator template points to the published Matrix version. Then create an app outside this repository:
-
-```bash
-npx create-matrix-app@next my-app
-```
-
-Until `create-matrix-app` is published, `npx create-matrix-app` returns E404. Use `@next` after the first prerelease publish.
-
-## Promote after Prism works
-
-After a clean Prism Vercel deployment uses the exact alpha successfully:
-
-```bash
-npm dist-tag add @mickyballadelli/matrix@0.1.0-alpha.1 latest
-```
-
-Prefer publishing a stable version instead of promoting an alpha when public users are expected.
+Update `CHANGELOG.md` and the generator template dependency before publishing.

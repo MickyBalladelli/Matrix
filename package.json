@@ -53,6 +53,7 @@
     "test:browser": "node test/run-browser-tests.mjs",
     "test:browser:official-examples": "node test/run-browser-tests.mjs --fixture test/official-examples.browser.html",
     "test:browser:extensions": "node test/run-browser-tests.mjs --fixture test/extension-patterns.browser.html",
+    "test:browser:integration-patterns": "node test/run-browser-tests.mjs --fixture test/integration-patterns.browser.html",
     "test:browser:compat": "node test/run-browser-tests.mjs --fixture test/browser-compatibility.browser.html",
     "test:browser:security": "node test/run-browser-tests.mjs --fixture test/security.browser.html",
     "test:browser:dark": "node test/run-browser-tests.mjs --color-scheme dark --fixture test/browser-compatibility.browser.html",
@@ -71,6 +72,7 @@
     "bench:memory": "node --expose-gc bench/memory.js",
     "bench:compare": "node bench/compare.mjs",
     "bench:record": "node bench/record-performance.mjs",
+    "check:release": "node scripts/check-release-checklist.mjs",
     "verify:release": "node scripts/verify-release.mjs",
     "prepublishOnly": "npm run verify:release"
   },

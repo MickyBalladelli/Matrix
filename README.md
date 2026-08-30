@@ -16,7 +16,7 @@ import { computed, effect, html, mount, signal } from '@mickyballadelli/matrix'
 
 `npm run build` creates the browser ESM output in `dist/matrix.js`.
 
-Before release, run `npm run verify:release`. It checks Node behavior, types, Chromium/Firefox/WebKit, package exports, performance budgets and bundle size.
+Before release, run `npm run verify:release`. It checks Node behavior, types, Chromium/Firefox/WebKit, package exports, performance budgets and bundle size. See the [pre-release checklist](docs/release-checklist.md) for the local release gate.
 
 ## Create a Matrix app
 
@@ -65,6 +65,7 @@ The repository also includes complete feature examples:
 - `examples/spa`: router, forms, resources, keyed lists, lifecycle, and themes.
 - `examples/server-integration`: a real `fetch` API adapter with an injectable local test adapter.
 - `examples/extensions`: custom form inputs, state persistence, analytics, error reporting, accessibility audits, and performance monitoring plugins.
+- `examples/integration-patterns`: resource caching, rate-limited signals, undo/redo, infinite scroll, realtime collaboration, and offline-first data flows.
 
 Each example has a README with local run and test notes. Run the official example fixture with `npm run test:browser:official-examples`.
 
@@ -145,6 +146,8 @@ Developer guides:
 - [Testing strategies](docs/testing-strategies.md)
 - [Accessibility checklist](docs/accessibility.md)
 - [Plugins and extension patterns](docs/plugins.md)
+- [Integration patterns](docs/patterns.md)
+- [Pre-release checklist](docs/release-checklist.md)
 
 ## API
 

@@ -1,5 +1,36 @@
 # API Reference
 
+## Public entry points
+
+Matrix is ESM-only. These are the package entry points covered by the public
+API. Import from the narrowest entry point that fits the feature:
+
+| Entry point | Contents |
+| --- | --- |
+| `@mickyballadelli/matrix` | Full runtime API |
+| `@mickyballadelli/matrix/reactivity` | Signals, Computeds, Effects, batching, and scopes |
+| `@mickyballadelli/matrix/components` | Components, lifecycle, providers, and error boundaries |
+| `@mickyballadelli/matrix/dom` | Templates, rendering, mounting, events, and keyed lists |
+| `@mickyballadelli/matrix/jsx-runtime` | Automatic JSX runtime |
+| `@mickyballadelli/matrix/jsx-dev-runtime` | Development JSX runtime |
+| `@mickyballadelli/matrix/styles` | Scoped styles, tokens, themes, and CSS variables |
+| `@mickyballadelli/matrix/utils` | Router, forms, resources, workers, and diagnostics |
+| `@mickyballadelli/matrix/plugins` | Plugin registration |
+| `@mickyballadelli/matrix/package.json` | Package metadata |
+
+The root runtime export inventory is:
+
+`configure`, `getRuntimeConfig`, `batch`, `computed`, `createScope`,
+`disposeScope`, `effect`, `flushJobs`, `onCleanup`, `signal`, `component`,
+`errorBoundary`, `inject`, `onMount`, `onUnmount`, `provide`, `delegate`,
+`html`, `keyed`, `mount`, `render`, `Fragment`, `createElement`, `h`, `jsx`,
+`jsxDEV`, `jsxs`, `css`, `cssVariables`, `defaultTokens`, `disposeStyle`,
+`globalCss`, `theme`, `tokens`, `utilityCss`, `usePlugin`, `bindInput`,
+`createDevtools`, `createForm`, `createRouter`, `createLogger`,
+`createPerformanceTimeline`, `inspect`, `inspectComponents`, `inspectEffects`,
+`inspectRouters`, `inspectSources`, `resource`, `runInWorker`, `routerView`,
+`setDevtoolsHook`, `watchDebug`.
+
 ## Reactivity
 
 ### `signal(initialValue, options?)`

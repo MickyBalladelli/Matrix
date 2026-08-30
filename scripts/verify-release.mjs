@@ -6,7 +6,7 @@ const commands = [
   ['npm', ['run', 'test:browser']],
   ['npm', ['run', 'test:performance']],
   ['npm', ['run', 'test:package']],
-  ['npm', ['run', 'size']]
+  ['npm', ['run', 'check:release']]
 ]
 
 for (const [command, args] of commands) {

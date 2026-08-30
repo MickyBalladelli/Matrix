@@ -71,13 +71,14 @@ export function bindInput(element, source, scope) {
     throw new TypeError('use:bind expects a writable signal')
   }
 
-  let focused = false
   let composing = false
   let timer
+  let writing = false
 
   effect(() => {
-    if (!focused) {
-      setInputValue(element, target.value)
+    const nextValue = target.value
+    if (!writing) {
+      setInputValue(element, nextValue)
     }
   })
 
@@ -85,7 +86,12 @@ export function bindInput(element, source, scope) {
     timer = undefined
     const nextValue = getInputValue(element)
     if (nextValue !== undefined) {
-      target.value = sanitize ? sanitize(nextValue) : nextValue
+      writing = true
+      try {
+        target.value = sanitize ? sanitize(nextValue) : nextValue
+      } finally {
+        writing = false
+      }
     }
   }
 
@@ -103,15 +109,6 @@ export function bindInput(element, source, scope) {
     writeValue()
   }
 
-  const onFocus = () => {
-    focused = true
-  }
-
-  const onBlur = () => {
-    focused = false
-    setInputValue(element, target.value)
-  }
-
   const onCompositionStart = () => {
     composing = true
   }
@@ -123,8 +120,6 @@ export function bindInput(element, source, scope) {
 
   element.addEventListener('input', onInput)
   element.addEventListener('change', onInput)
-  element.addEventListener('focus', onFocus)
-  element.addEventListener('blur', onBlur)
   element.addEventListener('compositionstart', onCompositionStart)
   element.addEventListener('compositionend', onCompositionEnd)
 
@@ -132,8 +127,6 @@ export function bindInput(element, source, scope) {
     clearTimeout(timer)
     element.removeEventListener('input', onInput)
     element.removeEventListener('change', onInput)
-    element.removeEventListener('focus', onFocus)
-    element.removeEventListener('blur', onBlur)
     element.removeEventListener('compositionstart', onCompositionStart)
     element.removeEventListener('compositionend', onCompositionEnd)
   })

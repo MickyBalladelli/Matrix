@@ -222,25 +222,28 @@ Audit note (2026-08-30): Done items were re-checked against the repo. Overclaime
 - [x] Create "Plugins" documentation section
 
 ### Integration patterns
-- [ ] Pattern: Loading and caching data with resource()
-- [ ] Pattern: Debouncing/throttling signal updates
-- [ ] Pattern: Undo/redo with signals
-- [ ] Pattern: Infinite scroll with router and signals
-- [ ] Pattern: Real-time collaboration patterns
-- [ ] Pattern: Offline-first applications
-- [ ] Create "Patterns" documentation section
+- [x] Pattern: Loading and caching data with resource()
+- [x] Pattern: Debouncing/throttling signal updates
+- [x] Pattern: Undo/redo with signals
+- [x] Pattern: Infinite scroll with router and signals
+- [x] Pattern: Real-time collaboration patterns
+- [x] Pattern: Offline-first applications
+- [x] Create "Patterns" documentation section
 
 ## Release: Quality Assurance
 
 ### Pre-release checklist
-- [ ] Run `npm pack --dry-run` and verify file list
-- [ ] Verify all exports are documented
-- [ ] Verify no console.warn or console.error in production builds
-- [ ] Run full test suite: `npm test && npm run test:types && npm run test:browser && npm run test:package`
-- [ ] Verify bundle sizes are under budget
-- [ ] Run performance benchmarks and compare with previous version
-- [ ] Check for any deprecation warnings in Node
-- [ ] Verify CHANGELOG is complete and accurate
+- [x] Run `npm pack --dry-run` and verify file list (`npm run check:release`)
+- [x] Verify all exports are documented (`npm run check:release`)
+- [x] Verify no console.warn or console.error in production builds (`npm run check:release`)
+- [x] Run full test suite: `npm test && npm run test:types && npm run test:browser && npm run test:package` (`npm run verify:release`)
+- [x] Verify bundle sizes are under budget (`npm run check:release`)
+- [x] Run performance benchmarks and compare with previous version (`npm run bench:record` then `npm run check:release`)
+- [x] Check for any deprecation warnings in Node (`npm run check:release`)
+- [x] Verify CHANGELOG is complete and accurate (`npm run check:release`)
+
+Release automation stays local. `npm run verify:release` runs the full test gate
+and the checklist audit; the performance audit needs two recorded history runs.
 
 ### Release process
 - [ ] Set version to stable (0.1.0 or 1.0.0)

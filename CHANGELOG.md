@@ -6,6 +6,7 @@
 - Run `createForm` validators once on creation so initial errors are present.
 - Tighten package smoke coverage for packed TypeScript/JSX consumers.
 - Narrow `npm test` to `test/*.test.js` and harden the browser test runner.
+- Add a local pre-release audit for package contents, exports, production logs, Node deprecations, changelog structure, and performance history.
 
 ## 0.1.0-alpha.0 — 2026-08-29
 

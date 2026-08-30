@@ -54,6 +54,10 @@ export default defineConfig({
 })
 ```
 
+## Prism
+
+[Prism](https://github.com/MickyBalladelli/Prism) is a UI library built on Matrix. See the [Prism repository](https://github.com/MickyBalladelli/Prism) for its components, examples and integration setup.
+
 ## Example
 
 A complete Counter application lives in `examples/counter`. The TODO application lives in `examples/todo`.

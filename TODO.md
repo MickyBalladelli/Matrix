@@ -171,12 +171,12 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Test in Deno compatibility mode
 
 ### Build tool integration
-- [ ] Create Rollup plugin example for tree-shaking
-- [ ] Verify esbuild handles JSX properly
-- [ ] Test Webpack 5 module federation
-- [ ] Verify Next.js App Router compatibility
-- [ ] Test Astro integration patterns
-- [ ] Test Remix integration patterns
+- [x] Create Rollup plugin example for tree-shaking
+- [x] Verify esbuild handles JSX properly
+- [x] Test Webpack 5 module federation
+- [x] Verify Next.js App Router compatibility
+- [x] Test Astro integration patterns
+- [x] Test Remix integration patterns
 
 ## Security: Hardening and Best Practices
 

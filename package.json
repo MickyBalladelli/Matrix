@@ -57,6 +57,7 @@
     "test:browser:android": "node test/run-browser-tests.mjs --browser chromium --device \"Pixel 5\" --fixture test/browser-compatibility.browser.html",
     "test:browser:edge": "node test/run-browser-tests.mjs --browser chromium --channel msedge --fixture test/browser-compatibility.browser.html",
     "test:node:compat": "node scripts/check-node-compatibility.mjs",
+    "test:build:integrations": "node scripts/check-build-integrations.mjs",
     "test:runtime:bun": "bun run test/runtime-compatibility/basic.mjs",
     "test:runtime:deno": "deno run --allow-read test/runtime-compatibility/basic.mjs",
     "test:runtime:cloudflare": "wrangler dev --local --config test/runtime-compatibility/wrangler.toml",

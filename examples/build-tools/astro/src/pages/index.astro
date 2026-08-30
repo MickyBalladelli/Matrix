@@ -1,0 +1,27 @@
+---
+const title = 'Matrix + Astro'
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>{title}</title>
+  </head>
+  <body>
+    <main>
+      <h1>{title}</h1>
+      <div id="matrix-counter"></div>
+    </main>
+  </body>
+</html>
+
+<script>
+  import { html, mount, signal } from '@mickyballadelli/matrix'
+
+  const host = document.querySelector('#matrix-counter')
+  const count = signal(0)
+  mount(() => html`
+    <button @click=${() => count.update(value => value + 1)}>${count}</button>
+  `, host)
+</script>

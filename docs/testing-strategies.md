@@ -91,6 +91,11 @@ Performance tests should catch a meaningful regression, not enforce one laptop's
 
 `npm run test:package` builds the package, checks every public export, packs it, installs the tarball in a temporary fixture, imports each entry point, and runs a strict TypeScript consumer check. This catches missing files and export-map mistakes that source tests cannot see.
 
+`npm run test:build:integrations` checks the Rollup, Webpack, Next, Astro, and
+Remix example boundaries and verifies automatic JSX output with esbuild. Run
+the tool-specific builds from `examples/build-tools` after installing the
+corresponding toolchain.
+
 ## Test design checklist
 
 - Give each test one behavior and one useful failure message.

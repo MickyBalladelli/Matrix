@@ -7,6 +7,8 @@ const staticScopedStyles = new WeakMap()
 const staticGlobalStyles = new WeakMap()
 const STYLE_RESULT = Symbol('matrix.style.result')
 const VARIABLES_RESULT = Symbol('matrix.variables.result')
+const CUSTOM_PROPERTY_NAME = /^--[A-Za-z_][A-Za-z0-9_-]*$/
+const UNSAFE_CUSTOM_PROPERTY_VALUE = /[<>{};\u0000-\u001f\u007f]|(?:expression|behavior)\s*\(|(?:^|[^A-Za-z0-9_-])(?:javascript|vbscript|data):|url\(\s*["']?\s*(?:javascript|vbscript|data):/i
 
 export const defaultTokens = Object.freeze({
   '--matrix-color-primary': '#2563eb',
@@ -230,8 +232,15 @@ export function globalCss(strings, ...values) {
 }
 
 export function cssVariables(values) {
-  if (!values || typeof values !== 'object') {
+  if (!values || typeof values !== 'object' || Array.isArray(values)) {
     throw new TypeError('cssVariables() expects an object')
+  }
+
+  for (const key of Object.keys(values)) {
+    assertCustomPropertyName(key)
+    if (!isReactiveValue(values[key])) {
+      serializeCustomPropertyValue(key, values[key])
+    }
   }
 
   return {
@@ -246,8 +255,37 @@ export function tokens(overrides = {}) {
 
 function variableRules(values) {
   return Object.entries(values)
-    .map(([key, value]) => `${key}: ${value};`)
+    .map(([key, value]) => {
+      assertCustomPropertyName(key)
+      const serialized = serializeCustomPropertyValue(key, value)
+      return serialized === null ? '' : `${key}: ${serialized};`
+    })
+    .filter(Boolean)
     .join(' ')
+}
+
+function assertCustomPropertyName(key) {
+  if (!CUSTOM_PROPERTY_NAME.test(key)) {
+    throw new TypeError(`CSS custom property name "${key}" must start with -- and contain only letters, numbers, underscores, or hyphens`)
+  }
+}
+
+function serializeCustomPropertyValue(key, source) {
+  const value = isReactiveValue(source) ? source.value : source
+  if (value === null || value === undefined || value === false) {
+    return null
+  }
+
+  if (typeof value === 'object' || typeof value === 'function' || typeof value === 'symbol') {
+    throw new TypeError(`CSS custom property "${key}" expects a primitive value or reactive value`)
+  }
+
+  const serialized = String(value)
+  if (UNSAFE_CUSTOM_PROPERTY_VALUE.test(serialized)) {
+    throw new Error(`Unsafe CSS custom property value rejected for ${key}`)
+  }
+
+  return serialized
 }
 
 export function theme(definition = {}) {
@@ -356,11 +394,11 @@ export function applyCssVariables(element, definition, scope) {
     }
 
     for (const [key, source] of Object.entries(definition.values)) {
-      const value = isReactiveValue(source) ? source.value : source
-      if (value === null || value === undefined || value === false) {
+      const value = serializeCustomPropertyValue(key, source)
+      if (value === null) {
         element.style.removeProperty(key)
       } else {
-        element.style.setProperty(key, String(value))
+        element.style.setProperty(key, value)
       }
     }
 

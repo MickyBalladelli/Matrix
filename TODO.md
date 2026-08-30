@@ -191,13 +191,13 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Add security regression test suite
 
 ### Input handling
-- [ ] Test HTML entity escaping in all contexts
-- [ ] Test SVG namespace edge cases
-- [ ] Verify CSS custom property values are safe
-- [ ] Test router params with special characters
-- [ ] Verify form input sanitization options
-- [ ] Test resource loader with untrusted URLs
-- [ ] Add CSP (Content Security Policy) compatibility notes
+- [x] Test HTML entity escaping in all contexts
+- [x] Test SVG namespace edge cases
+- [x] Verify CSS custom property values are safe
+- [x] Test router params with special characters
+- [x] Verify form input sanitization options
+- [x] Test resource loader with untrusted URLs
+- [x] Add CSP (Content Security Policy) compatibility notes
 
 ## Ecosystem: Examples and Patterns
 

@@ -61,6 +61,11 @@ export function bindInput(element, source, scope) {
   const binding = source
   const target = binding?.source ?? binding
   const debounce = Number(binding?.debounce ?? 0)
+  const sanitize = binding?.sanitize
+
+  if (sanitize !== undefined && typeof sanitize !== 'function') {
+    throw new TypeError('use:bind sanitize expects a function')
+  }
 
   if (!isReactiveValue(target) || target.kind !== 'signal' || typeof target.set !== 'function') {
     throw new TypeError('use:bind expects a writable signal')
@@ -80,7 +85,7 @@ export function bindInput(element, source, scope) {
     timer = undefined
     const nextValue = getInputValue(element)
     if (nextValue !== undefined) {
-      target.value = nextValue
+      target.value = sanitize ? sanitize(nextValue) : nextValue
     }
   }
 

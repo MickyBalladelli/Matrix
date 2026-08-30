@@ -6,7 +6,7 @@
 - `examples.browser.html` loads `examples.browser.js` and checks the Shopping Cart, Notes, Dashboard, and Chat applications through their adapter boundaries.
 - `edge-cases.browser.html` loads `edge-cases.browser.js` and checks cleanup-time updates, lifecycle navigation, async form unmounts, style timing, long text, and rapid mount cycles.
 - `browser-compatibility.browser.html` loads `browser-compatibility.browser.js` and checks ESM/runtime features, touch events, dark-mode media queries, and RTL rendering.
-- `security.browser.html` loads `security.browser.js` and checks deterministic XSS payloads, URL guards, CSS isolation, router boundaries, form privacy, and plugin cleanup.
+- `security.browser.html` loads `security.browser.js` and checks deterministic XSS payloads, entity escaping, SVG namespaces, CSS input validation, router boundaries, form sanitization, resource URLs, and plugin cleanup.
 - `node-compatibility.test.js` checks the DOM-free reactive core and clear browser-only API errors in Node.
 - `runtime-compatibility/basic.mjs` is a portable smoke fixture for Node, Bun, and Deno. `runtime-compatibility/cloudflare-worker.mjs` is the module Worker fixture.
 - `npm run test:types` checks all public declarations and strict JSX fixtures, including read-only props, reactive props, intrinsic attributes and event names.

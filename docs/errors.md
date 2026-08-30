@@ -262,6 +262,24 @@ Cause: CSS variable definitions were not passed as an object.
 
 Fix: use `cssVariables({ '--accent': accent })`.
 
+### `CSS custom property name ... must start with --`
+
+Cause: a CSS variable definition used a regular CSS property name or unsafe characters.
+
+Fix: use a custom property name such as `--accent` and keep the name application-defined.
+
+### `Unsafe CSS custom property value rejected ...`
+
+Cause: a CSS custom-property value contained declaration or rule delimiters, executable protocols, or a dangerous CSS function.
+
+Fix: validate user input before passing it to `cssVariables()` or `theme()`. Use an allowlisted token for CSS values that come from users.
+
+### `use:bind sanitize expects a function`
+
+Cause: a `use:bind` binding supplied a non-function `sanitize` option.
+
+Fix: pass `{ source: signal, sanitize: value => ... }`, or omit `sanitize` for lossless binding.
+
 ### `use:style expects a css() result`
 
 Cause: `use:style` received a plain string or another style-like object.

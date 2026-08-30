@@ -112,6 +112,20 @@ form.fields.tags.value = ['reactivity', 'routing']
 
 Use a new object or array reference when changing a complex field. `use:bind` supports text, number, range, checkbox, radio, file, single select, and multiple select controls. A multiple select writes an array of selected option values.
 
+## Sanitizing bound input
+
+Binding is intentionally lossless by default. For a field that needs a small, explicit normalization step, pass a `sanitize` function with the signal:
+
+```js
+const sanitizeName = value => String(value).replace(/[<>]/g, '')
+
+const view = html`
+  <input use:bind=${{ source: form.fields.name, sanitize: sanitizeName }}>
+`
+```
+
+The function runs on user `input` and `change` values before they reach the signal. It is not a rich-text sanitizer and does not affect direct writes to `form.fields.name`; validate and sanitize again at the server boundary.
+
 ## Async validation
 
 The built-in validators are synchronous. Run remote checks after local validation and write a server error back to the error signal. Guard against an older request winning a race:

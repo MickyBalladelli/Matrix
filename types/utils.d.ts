@@ -1,2 +1,2 @@
 export { bindInput, createDevtools, createForm, createLogger, createPerformanceTimeline, createRouter, inspect, inspectComponents, inspectEffects, inspectRouters, inspectSources, resource, routerView, setDevtoolsHook, watchDebug } from './index.js'
-export type { ComponentDebugNode, Devtools, DevtoolsOptions, EffectDebugSnapshot, Form, NavigationContext, PerformanceTimeline, PerformanceTimelineEntry, Resource, RouteDefinition, Router, RouterDebugSnapshot, SourceDebugSnapshot } from './index.js'
+export type { BindOptions, ComponentDebugNode, Devtools, DevtoolsOptions, EffectDebugSnapshot, Form, NavigationContext, PerformanceTimeline, PerformanceTimelineEntry, Resource, RouteDefinition, Router, RouterDebugSnapshot, SourceDebugSnapshot } from './index.js'

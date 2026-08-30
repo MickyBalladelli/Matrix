@@ -218,6 +218,12 @@ export interface FormOptions {
   name?: string
 }
 
+export interface BindOptions<T = unknown> {
+  source: Signal<T>
+  debounce?: number
+  sanitize?: (value: T) => T
+}
+
 export function createForm<T extends Record<string, unknown>>(
   initialValues: T,
   validators?: Partial<{ [K in keyof T]: (value: T[K], values: T) => string | undefined }>,

@@ -8,7 +8,9 @@ import {
   html,
   jsx,
   mount,
+  resource,
   signal,
+  theme,
   usePlugin
 } from '../src/index.js'
 
@@ -91,6 +93,23 @@ for (const payload of payloads) {
   app.unmount()
 }
 
+const entityValue = `&<>'"=\` ${'${not-a-template-expression}'}`
+const entityApp = mount(() => html`
+  <label data-entity title=${entityValue}>${entityValue}</label>
+  <svg data-entity-svg>
+    <text data-entity-text>${entityValue}</text>
+    <foreignObject><span data-entity-html title=${entityValue}>${entityValue}</span></foreignObject>
+  </svg>
+  <input data-entity-input .value=${entityValue}>
+`, host)
+assert(host.querySelector('[data-entity]').textContent === entityValue, 'HTML entities must remain text content')
+assert(host.querySelector('[data-entity]').getAttribute('title') === entityValue, 'HTML entities must remain ordinary attribute data')
+assert(host.querySelector('[data-entity-text]').textContent === entityValue, 'HTML entities must remain SVG text content')
+assert(host.querySelector('[data-entity-html]').namespaceURI === 'http://www.w3.org/1999/xhtml', 'foreignObject content must use the HTML namespace')
+assert(host.querySelector('[data-entity-input]').value === entityValue, 'HTML entities must remain property values')
+assert(host.querySelector('script, img, [onerror], [onload]') === null, 'Entity payloads must not create executable markup')
+entityApp.unmount()
+
 let rawHtmlError
 try {
   jsx('div', { dangerouslySetInnerHTML: { __html: payloads[0] } })
@@ -98,6 +117,19 @@ try {
   rawHtmlError = error
 }
 assert(rawHtmlError?.message.includes('does not support dangerouslySetInnerHTML'), 'Raw HTML must remain an explicit unsupported boundary')
+
+const svgEdgeApp = mount(() => html`
+  <svg data-svg-edge>
+    <defs><symbol id="security-symbol"><circle cx="2" cy="2" r="2"></circle></symbol></defs>
+    <use data-svg-use href="#security-symbol"></use>
+    <foreignObject data-svg-foreign><textarea data-svg-textarea></textarea></foreignObject>
+  </svg>
+`, host)
+assert(host.querySelector('[data-svg-edge]').namespaceURI === 'http://www.w3.org/2000/svg', 'SVG roots must retain the SVG namespace')
+assert(host.querySelector('[data-svg-use]').namespaceURI === 'http://www.w3.org/2000/svg', 'SVG descendants must retain the SVG namespace')
+assert(host.querySelector('[data-svg-use]').getAttribute('href') === '#security-symbol', 'SVG fragment references must remain safe URL data')
+assert(host.querySelector('[data-svg-textarea]').namespaceURI === 'http://www.w3.org/1999/xhtml', 'HTML controls inside foreignObject must use the HTML namespace')
+svgEdgeApp.unmount()
 
 for (const unsafeUrl of [
   'javascript:window.__MATRIX_SECURITY_XSS__ += 1',
@@ -143,6 +175,50 @@ styleApp.unmount()
 disposeStyle(redStyle)
 disposeStyle(blueStyle)
 
+let invalidCssNameError
+try {
+  cssVariables({ color: 'red' })
+} catch (error) {
+  invalidCssNameError = error
+}
+assert(invalidCssNameError?.message.includes('must start with --'), 'CSS variables must reject non-custom-property names')
+
+let invalidCssValueError
+try {
+  cssVariables({ '--security-value': 'red; --leaked: blue' })
+} catch (error) {
+  invalidCssValueError = error
+}
+assert(invalidCssValueError?.message.includes('Unsafe CSS custom property value'), 'CSS variables must reject declaration injection')
+
+let invalidThemeError
+try {
+  theme({ light: { '--security-theme': 'red } body { color: red' } })
+} catch (error) {
+  invalidThemeError = error
+}
+assert(invalidThemeError?.message.includes('Unsafe CSS custom property value'), 'Themes must reject CSS rule injection')
+
+const safeCssValue = signal('ok')
+const safeVariables = cssVariables({ '--security-value': safeCssValue })
+const safeVariablesApp = mount(() => html`<div data-safe-vars use:vars=${safeVariables}>safe</div>`, host)
+assert(host.querySelector('[data-safe-vars]').style.getPropertyValue('--security-value') === 'ok', 'Safe CSS custom-property values must apply')
+let reactiveCssValueError
+try {
+  safeCssValue.value = 'red; --leaked: blue'
+} catch (error) {
+  reactiveCssValueError = error
+}
+assert(reactiveCssValueError?.message.includes('Unsafe CSS custom property value'), 'Reactive CSS custom-property updates must be validated')
+assert(host.querySelector('[data-safe-vars]').style.getPropertyValue('--security-value') === 'ok', 'Rejected CSS values must not replace the last safe value')
+safeVariablesApp.unmount()
+
+const entityVariableValue = 'rgb(1, 2, 3)'
+const entityVariable = cssVariables({ '--entity-value': entityVariableValue })
+const entityVariableApp = mount(() => html`<div data-entity-vars use:vars=${entityVariable}>vars</div>`, host)
+assert(host.querySelector('[data-entity-vars]').style.getPropertyValue('--entity-value') === entityVariableValue, 'CSS custom-property values must remain CSS data')
+entityVariableApp.unmount()
+
 const originalUrl = window.location.href
 const router = createRouter([
   { path: '/', view: () => html`<p>home</p>` },
@@ -178,6 +254,9 @@ try {
 }
 assert(malformedRouteError?.message.includes('malformed percent-encoding'), 'Router must reject malformed encoded params clearly')
 assert(await router.navigate('/security/hash#%E0%A4%A', { scroll: false }), 'Malformed hash encoding must not break safe navigation')
+const specialRoutePayload = `a/b ?#&=${entityValue}`
+assert(await router.navigate(`/security/${encodeURIComponent(specialRoutePayload)}`, { scroll: false }), 'Router params with special characters must navigate')
+assert(router.current.value.params.value === specialRoutePayload, 'Router params must decode special characters as data')
 router.dispose()
 window.history.replaceState({}, '', originalUrl)
 
@@ -197,6 +276,44 @@ assert(!JSON.stringify(privacyDevtools.snapshot()).includes(secret), 'Default de
 passwordApp.unmount()
 privacyDevtools.dispose()
 credentials.reset()
+
+const sanitizedForm = createForm({ displayName: '' })
+const sanitizeDisplayName = value => String(value).replace(/[<>]/g, '')
+const sanitizedFormApp = mount(() => html`
+  <input data-sanitized-name use:bind=${{ source: sanitizedForm.fields.displayName, sanitize: sanitizeDisplayName }}>
+`, host)
+const sanitizedInput = host.querySelector('[data-sanitized-name]')
+sanitizedInput.value = '<b>Ada</b>'
+sanitizedInput.dispatchEvent(new Event('input', { bubbles: true }))
+assert(sanitizedForm.fields.displayName.value === 'bAda/b', 'Form binding must apply its explicit sanitizer before writing')
+sanitizedFormApp.unmount()
+sanitizedForm.reset()
+
+let invalidSanitizerError
+try {
+  mount(() => html`<input use:bind=${{ source: signal(''), sanitize: 'not-a-function' }}>`, host)
+} catch (error) {
+  invalidSanitizerError = error
+}
+assert(invalidSanitizerError?.message.includes('sanitize expects a function'), 'Invalid form sanitizers must fail clearly')
+assert(host.childNodes.length === 0, 'Invalid form sanitizer binding must roll back the DOM')
+
+const untrustedResourceUrl = 'javascript:window.__MATRIX_SECURITY_XSS__ += 1'
+let receivedResourceUrl
+const untrustedUrlResource = resource(async (url, requestSignal) => {
+  receivedResourceUrl = url
+  assert(requestSignal instanceof AbortSignal, 'Resource loaders must receive an abort signal')
+  const parsed = new URL(url, window.location.href)
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.origin !== window.location.origin) {
+    throw new Error('Resource loader rejected an untrusted URL')
+  }
+  return parsed.pathname
+})
+await untrustedUrlResource.reload(untrustedResourceUrl).catch(() => {})
+assert(receivedResourceUrl === untrustedResourceUrl, 'Resource loaders must receive untrusted URLs for application validation')
+assert(untrustedUrlResource.status.value === 'error', 'A resource loader must be able to reject an untrusted URL')
+assert(window.__MATRIX_SECURITY_XSS__ === 0, 'Untrusted resource URLs must not execute')
+untrustedUrlResource.dispose()
 
 configure({ development: true })
 let failedInstallHookCalls = 0

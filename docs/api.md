@@ -135,7 +135,7 @@ Creates a reactive keyed list. Keys must be unique. Items that keep their key ar
 - `?attribute=${value}`: toggles a boolean attribute.
 - `use:style=${css(...)}`: applies scoped CSS.
 - `use:vars=${cssVariables({...})}`: applies CSS variables.
-- `use:bind=${signal}`: creates a two-way form binding.
+- `use:bind=${signal}`: creates a two-way form binding. Pass `{ source, debounce, sanitize }` to normalize user input explicitly.
 
 `delegate(element, event, selector, handler, options?)` delegates an event to a
 container. Delegations sharing the same container, event, capture, and passive
@@ -209,7 +209,7 @@ configure({ development: true, bindingWarningThreshold: 25 })
 console.log(getRuntimeConfig())
 ```
 
-`createForm(initialValues, validators, { name })` adds `validateField()`, `inspectField()`, and `inspect()` debugging helpers to the returned form.
+`createForm(initialValues, validators, { name })` adds `validateField()`, `inspectField()`, and `inspect()` debugging helpers to the returned form. `use:bind` accepts either a signal or `{ source, debounce, sanitize }`; `sanitize` is an optional application function that runs on user input before it updates the signal.
 
 `usePlugin({ install(api) { ... } })` listens to four extension points:
 

@@ -1,123 +1,287 @@
-# Matrix TODO
+# Matrix TODO: Path to V1 Stability
 
-Review date: 2026-08-29
+Review date: 2026-08-30
+Current version: 0.1.0-alpha.1
+Published on npm: @mickyballadelli/matrix@next
 
-## What blocks npm and Vercel now
+## Foundation: Stability and Testing
 
-- [x] Use `@mickyballadelli/matrix` as the final npm name. `matrix` is already owned by an unrelated package (`matrix@1.0.3`). The scoped name was unused at review time.
-- [x] Rename the root package and every public import to `@mickyballadelli/matrix`. This includes Matrix examples, docs, `jsxImportSource`, the app template, Prism source, Prism types, and Prism showcase config.
-- [x] Remove `"private": true` from Matrix only when the package is ready to publish.
-- [x] Replace Prism's `peerDependencies.matrix: "file:../Matrix"` with a real semver peer dependency on the published package.
-- [x] Give Prism a local development dependency or workspace override for Matrix. Keep Matrix as a peer dependency in the published Prism package so an app gets one Matrix runtime, not two.
-- [x] Remove Vercel's dependence on sibling paths. Prism's showcase currently uses `file:../../../Matrix` plus Vite aliases to Matrix source files. A clean checkout or Vercel build must work using registry packages alone.
-- [ ] Update both lockfiles after package names and dependency ranges change.
-- [ ] Deploy Prism from a clean checkout before release. Confirm install, production build, routing, JSX production runtime, and JSX development runtime all resolve from npm.
+### Core runtime stability
+- [ ] Add comprehensive error boundary tests for failures after partial DOM insertion
+- [ ] Add error boundary tests for failures inside lifecycle callbacks
+- [ ] Test error propagation through component trees
+- [ ] Add leak detection tests for repeated mount/unmount cycles (1000x+ unmounts)
+- [ ] Add leak detection for keyed list replacements
+- [ ] Add leak detection for forms with debounce cleanup
+- [ ] Add leak detection for router start/stop cycles
+- [ ] Add leak detection for scoped CSS and theme changes
+- [ ] Add leak detection for aborted resources (resource cleanup)
+- [ ] Verify effect cleanup runs in correct order during unmount
+- [ ] Test concurrent signal updates and batch behavior under stress
+- [ ] Test very large keyed lists (10k+ items) for performance and memory
 
-## Make a clean Matrix npm package
+### Browser test automation
+- [ ] Add browser tests (Chromium, Firefox, WebKit)
+- [ ] Add test coverage for Node 18, 20, 22
+- [ ] Verify browser test suite runs before release
+- [ ] Add performance regression testing
 
-- [x] Pick one package layout. Right now npm would ship both `src` and a copied `dist/src`. Recommended: make one of them canonical and point every export to it.
-- [x] Clean the build output before producing a package. The current dry run includes stale `dist/app` example assets.
-- [x] Stop shipping unrelated built examples. Current dry run contains 76 files and 187,475 unpacked bytes, including duplicate source and stale app output.
-- [x] Add a `prepack` script so the npm artifact is always generated from current source.
-- [x] Add `types`, `import`, and `default` conditions to every public export. Secondary paths such as `/reactivity`, `/components`, `/dom`, `/styles`, `/utils`, and `/plugins` currently have no explicit type target.
-- [x] Decide whether raw internal source is public. If not, export only supported entry points from the built package.
-- [x] Add package metadata: `description`, `license`, `author`, `repository`, `homepage`, `bugs`, `keywords`, `engines`, and `publishConfig.access: "public"`.
-- [x] Document that Matrix is ESM-only and state supported Node, bundler, and browser versions.
-- [x] Add a package smoke check that installs the packed tarball in an empty project and imports the root API, every subpath, and both JSX runtimes.
-- [x] Add a TypeScript smoke check against the packed package.
-- [x] Run `npm pack --dry-run` before every release and inspect every included file.
+### Type safety
+- [ ] Run TypeScript strict mode on entire codebase
+- [ ] Add strict type tests for component props mutation prevention
+- [ ] Verify JSX IntrinsicElements types catch misspelled attributes
+- [ ] Add type tests for reactive prop updates
+- [ ] Test that invalid event names cause type errors
+- [ ] Verify readonly signal types prevent direct mutation
 
-## First release steps
+## Documentation: Completeness and Clarity
 
-- [x] npm account exists.
-- [ ] Enable npm 2FA if direct publishing asks for it.
-- [ ] Publish the first experimental release under a prerelease version and non-`latest` tag, for example `0.1.0-alpha.0` with `--tag next`.
-- [ ] Use `npm publish --access public` for a scoped public package.
-- [x] Update `PUBLISH.md`. It currently assumes the free unscoped name and uses `npm version`, which creates a git commit and tag by default. Use a version workflow that does not create them automatically.
-- [ ] Verify the published package with `npm view`, install the exact published version in a clean fixture, then promote the tag only after Prism works on Vercel.
-- [ ] Publish `create-matrix-app` after Matrix. The unscoped `create-matrix-app` name is unused at review time, but ownership must still be checked before release.
-- [x] Update the generator template dependency to the final Matrix name and version.
-- [x] Update `create-matrix-app/index.js`; its local-project detection and dependency rewrite are hard-coded to the name `matrix`.
-- [ ] Pack and inspect `create-matrix-app`, then create one app outside this repository and confirm it installs only registry dependencies.
+### Core documentation
+- [ ] Write "Common Patterns" guide (conditional rendering, loops, forms, async loading)
+- [ ] Write "Performance Tips" guide with anti-patterns to avoid
+- [ ] Write "Troubleshooting" guide with diagnostic steps for common issues
+- [ ] Write "Security" guide covering XSS, CSRF, dynamic URLs, raw HTML
+- [ ] Create "10-Minute Tutorial" starting from npm install
+- [ ] Expand "Form Validation" example with error messages, async validation, complex fields
+- [ ] Add "Routing Advanced" guide covering guards, transitions, deep linking
+- [ ] Add "CSS Scoping" guide with complex selector examples and limitations
 
-Publish commands after the package cleanup above is complete:
+### Developer experience docs
+- [ ] Document all error messages with causes and solutions
+- [ ] Add "IDE Setup" guide for JSX autocomplete and type hints
+- [ ] Create "Build Tool Integration" guide for Vite, Rollup, Webpack, esbuild
+- [ ] Document "Debugging" with browser DevTools tips and Matrix logger
+- [ ] Add "DevTools Integration" guide for custom plugins
+- [ ] Write "Testing Strategies" with example test suites
+- [ ] Document "Accessibility Checklist" for applications
 
-```bash
-cd /Users/micky/dev/Matrix
+### API documentation
+- [ ] Document all plugin extension points with examples
+- [ ] Add examples for router guards, transitions, and redirects
+- [ ] Document `batch()` usage patterns and gotchas
+- [ ] Add `scope.run()` usage examples
+- [ ] Document lifecycle hook execution order
+- [ ] Add computed with custom setters example
+- [ ] Document `inspect()` and `inspectEffects()` output format
 
-npm login --cache /private/tmp/matrix-npm-cache
-npm whoami --cache /private/tmp/matrix-npm-cache
+## Developer Experience: Tools and Errors
 
-npm pkg set name='@mickyballadelli/matrix'
-npm pkg delete private
-npm pkg set publishConfig.access=public
-npm version 0.1.0-alpha.0 --no-git-tag-version
+### Error messages
+- [ ] Improve error message for invalid component render function
+- [ ] Add stack trace that points to user component, not internals
+- [ ] Add "Did you mean?" suggestions for common typos
+- [ ] Improve "Multiple runtimes loaded" warning with debug info
+- [ ] Add warnings for stale closures in effects (reading past scope)
+- [ ] Add warnings for effect dependency changes
+- [ ] Warn when component returns non-template, non-component value
+- [ ] Warn about duplicate keys before runtime error
 
-mv dist Trash/dist-before-npm-publish-2026-08-29
-npm run build
+### Development mode
+- [ ] Add `development` mode flag that enables strict checks
+- [ ] Add warnings for prop mutations with helpful stack traces
+- [ ] Add warning for reading signals outside effect/template
+- [ ] Add detection for forgotten `${}` in template literals
+- [ ] Add warnings for common router misconfigurations
+- [ ] Add form field validation debugging helpers
+- [ ] Add performance warnings for unoptimized bindings
 
-npm pack --dry-run --cache /private/tmp/matrix-npm-cache
-npm publish --access public --tag next --cache /private/tmp/matrix-npm-cache
+### DevTools enhancements
+- [ ] Create browser DevTools extension (Chrome/Firefox/Edge)
+- [ ] Add component tree inspector in DevTools
+- [ ] Add signal/computed inspection panel
+- [ ] Add effect dependency visualizer
+- [ ] Add router state inspector
+- [ ] Add performance timeline recording
+- [ ] Create VS Code debugging integration for Matrix components
 
-npm view @mickyballadelli/matrix@0.1.0-alpha.0 --cache /private/tmp/matrix-npm-cache
-```
+## Testing: Comprehensive Coverage
 
-Install this alpha with:
+### Integration tests
+- [ ] Test complex form with conditional fields, validation, async submission
+- [ ] Test multi-page router with guards, transitions, redirects
+- [ ] Test dynamic theme switching with CSS variable updates
+- [ ] Test component composition with deeply nested props
+- [ ] Test mixed JSX and template literal syntax
+- [ ] Test SVG and namespace handling in depth
+- [ ] Test mobile touch events and gestures
+- [ ] Test keyboard navigation through router links and form fields
 
-```bash
-npm install @mickyballadelli/matrix@next
-```
+### Example applications
+- [ ] Create "Shopping Cart" example (routing, forms, API calls, state)
+- [ ] Create "Notes App" example (complex forms, search, local storage)
+- [ ] Create "Dashboard" example (many components, performance considerations)
+- [ ] Create "Real-time Chat" example (WebSocket, message handling)
+- [ ] Each example should include tests and performance notes
 
-## Runtime correctness gaps
+### Edge cases
+- [ ] Test re-rendering during unmount
+- [ ] Test signal updates during effect cleanup
+- [ ] Test component updates during mount callbacks
+- [ ] Test router navigation during component mount/unmount
+- [ ] Test form submission with component unmount
+- [ ] Test CSS style injection timing edge cases
+- [ ] Test very long text content in templates
+- [ ] Test rapid mounting/unmounting of same component
 
-- [x] Automate the browser test suite. It currently requires manually opening `test/dom.browser.html`; `npm test` covers only the Node reactivity suite.
-- [x] Add CI for supported Node versions and real browsers. Include Chromium, Firefox, and WebKit if all are claimed as supported.
-- [ ] Add integration coverage based on real Prism components. Cover `Popup`, `Select`, `Table`, router navigation, theme injection, mount, and full unmount cleanup.
-- [x] Define and test JSX `key` behavior. The type signatures accept a runtime key argument, but `jsx`, `jsxs`, and `jsxDEV` currently ignore it.
-- [x] Test chained JSX event modifiers. The runtime only removes one suffix while parsing names such as capture, once, passive, prevent, and stop.
-- [x] Fix object-style updates so properties removed from the next object do not remain on the DOM element.
-- [x] Add regression checks for component rerenders. Confirm old effects, computed values, mount callbacks, and DOM bindings are disposed while state that should survive is preserved.
-- [ ] Add error-boundary tests for failures after partial DOM insertion and failures inside lifecycle callbacks.
-- [ ] Add leak checks for repeated mount/unmount, keyed list replacement, forms with debounce, router start/stop, styles, and aborted resources.
-- [x] Make `mount().unmount()` and other cleanup handles explicitly idempotent and test repeated calls.
+## Performance: Benchmarks and Regression Prevention
 
-## Types and developer experience
+### Benchmark suite
+- [ ] Add memory baseline for idle application
+- [ ] Add memory baseline for 1000 signals
+- [ ] Add memory baseline for 1000 effects
+- [ ] Benchmark large keyed list (10k items) mount, update, unmount
+- [ ] Benchmark CSS variable update performance (100 variables)
+- [ ] Benchmark rapid signal updates with many subscribers
+- [ ] Create performance comparison against React, Vue, Preact
+- [ ] Document performance profiles by use case
 
-- [x] Split declarations by public entry point or map each export to an accurate declaration file.
-- [x] Improve JSX types. `IntrinsicElements` currently accepts any element and any property, so TypeScript cannot catch misspelled attributes, events, or invalid component props.
-- [x] Make runtime and declaration signatures match exactly, including component results, router hooks, resource loader arguments, writable computed values, plugin events, style results, and cleanup handles.
-- [x] Add declaration tests for the patterns used by Prism, including reactive props and JSX children.
-- [x] Choose one language for public errors and docs. Documentation is English, but many runtime errors are French.
-- [x] Add development warnings for invalid hook order, changing signal/computed slot order, and duplicate Matrix runtimes.
-- [ ] Add source maps if a built `dist` becomes the published contract.
+### Regression prevention
+- [ ] Lock size budgets with 2% tolerance before release
+- [ ] Add performance regression detection in CI
+- [ ] Benchmark before and after every optimization attempt
+- [ ] Keep detailed performance notes for each version
+- [ ] Create public performance dashboard or tracking
 
-## API and platform gaps
+### Optimization opportunities
+- [ ] Consider lazy compilation of templates on first use
+- [ ] Evaluate event delegation efficiency for large DOMs
+- [ ] Profile CSS scoping implementation for bottlenecks
+- [ ] Analyze router matching performance with large route tables
+- [ ] Consider worker offloading for CPU-heavy operations
+- [ ] Evaluate signal batching effectiveness
 
-- [x] Decide the router's query-string and hash API. It currently strips both from its reactive path and from navigation targets.
-- [x] Add router handling for same-page anchors, scroll restoration, base paths on static hosts, redirects, and a documented Vercel rewrite rule.
-- [x] Decide whether navigation guards may be async. Current guards are synchronous only.
-- [x] Document the security policy for dynamic URLs, CSS values, DOM nodes, and intentional raw HTML. Add focused security regression cases.
-- [x] Verify scoped CSS against nested at-rules, keyframes, modern CSS nesting, complex selectors, and multiple documents.
-- [x] Complete accessibility checks for default tokens, focus states, form bindings, router links, and reduced-motion behavior.
-- [x] State the SSR/hydration position clearly. It need not block the first client-only npm release, but server imports and Vercel prerendering behavior must be predictable.
-- [x] Record minified, gzip, and Brotli size for each public entry instead of measuring only the aggregated unminified source graph.
-- [x] Save benchmark results by Matrix version and define a regression budget.
+## Platform Support: Verification and Documentation
 
-## Documentation and maintenance
+### Browser compatibility
+- [ ] Test on Safari 15+
+- [ ] Test on Chrome 90+, Firefox 88+, Edge 90+
+- [ ] Test on iOS Safari
+- [ ] Test on mobile Chrome (Android)
+- [ ] Verify touch event handling
+- [ ] Test Dark Mode support
+- [ ] Test RTL language rendering (with `dir="rtl"`)
+- [ ] Document minimum versions for each browser
 
-- [x] Replace clone-and-import setup in `README.md` with the final npm install command.
-- [x] Add a minimal Matrix + Vite + JSX guide using the final package name.
-- [x] Add a Prism integration guide showing Matrix as a peer dependency and explaining why only one runtime instance should exist.
-- [x] Document all supported exports and mark experimental APIs clearly before the first public release.
-- [x] Reconcile docs with code. The architecture says advanced keys need a dedicated primitive, while older project planning claimed component key support was complete.
-- [x] Add contribution, support, security-reporting, and release-process documents.
-- [x] Keep `CHANGELOG.md` and migration notes updated for every public API or package-name change.
+### Node.js compatibility
+- [ ] Verify signal/computed work in Node (no DOM)
+- [ ] Test Node 18.x through current LTS
+- [ ] Verify errors on Node for browser-only APIs
+- [ ] Test in Cloudflare Workers environment
+- [ ] Test in Bun runtime
+- [ ] Test in Deno compatibility mode
 
-## Suggested order
+### Build tool integration
+- [ ] Create Rollup plugin example for tree-shaking
+- [ ] Verify esbuild handles JSX properly
+- [ ] Test Webpack 5 module federation
+- [ ] Verify Next.js App Router compatibility
+- [ ] Test Astro integration patterns
+- [ ] Test Remix integration patterns
 
-1. Rename Matrix and its consumers to `@mickyballadelli/matrix`.
-2. Fix package contents and export/type maps.
-3. Publish an alpha under `next`.
-4. Convert Prism from local paths to the npm package.
-5. Prove the Prism Vercel deployment from a clean checkout.
-6. Automate browser, package, and type checks before promoting the release.
+## Security: Hardening and Best Practices
+
+### Security testing
+- [ ] Fuzz XSS prevention with random HTML/SVG/XML
+- [ ] Test all escape pathways with malicious input
+- [ ] Verify CSS scoping prevents style leakage attacks
+- [ ] Test router path handling with malicious URLs
+- [ ] Verify form binding doesn't expose sensitive data
+- [ ] Test plugin system for sandbox breaks
+- [ ] Document SECURITY.md with security considerations
+- [ ] Add security regression test suite
+
+### Input handling
+- [ ] Test HTML entity escaping in all contexts
+- [ ] Test SVG namespace edge cases
+- [ ] Verify CSS custom property values are safe
+- [ ] Test router params with special characters
+- [ ] Verify form input sanitization options
+- [ ] Test resource loader with untrusted URLs
+- [ ] Add CSP (Content Security Policy) compatibility notes
+
+## Ecosystem: Examples and Patterns
+
+### Official examples
+- [ ] Create "Blog" example with markdown rendering
+- [ ] Create "Admin Dashboard" with complex data tables
+- [ ] Create "E-commerce" example with filters and sorting
+- [ ] Create "SPA" example showcasing full Matrix capabilities
+- [ ] Create "Server Integration" example with real API
+- [ ] Each example with Vite, TypeScript, complete tests
+- [ ] Add example template to create-matrix-app
+
+### Extension patterns
+- [ ] Example: Custom form input component with validation
+- [ ] Example: State persistence plugin (localStorage)
+- [ ] Example: Analytics plugin for tracking
+- [ ] Example: Error reporting plugin
+- [ ] Example: A11y audit plugin
+- [ ] Example: Performance monitoring plugin
+- [ ] Create "Plugins" documentation section
+
+### Integration patterns
+- [ ] Pattern: Loading and caching data with resource()
+- [ ] Pattern: Debouncing/throttling signal updates
+- [ ] Pattern: Undo/redo with signals
+- [ ] Pattern: Infinite scroll with router and signals
+- [ ] Pattern: Real-time collaboration patterns
+- [ ] Pattern: Offline-first applications
+- [ ] Create "Patterns" documentation section
+
+## Release: Quality Assurance
+
+### Pre-release checklist
+- [ ] Run `npm pack --dry-run` and verify file list
+- [ ] Verify all exports are documented
+- [ ] Verify no console.warn or console.error in production builds
+- [ ] Run full test suite: `npm test && npm run test:types && npm run test:browser && npm run test:package`
+- [ ] Verify bundle sizes are under budget
+- [ ] Run performance benchmarks and compare with previous version
+- [ ] Check for any deprecation warnings in Node
+- [ ] Verify CHANGELOG is complete and accurate
+
+### Release process
+- [ ] Set version to stable (0.1.0 or 1.0.0)
+- [ ] Update CHANGELOG with release date
+- [ ] Create git tag and release notes
+- [ ] Publish to npm with `--tag latest` (moving from `next`)
+- [ ] Publish create-matrix-app if updated
+- [ ] Verify installation works: `npm install @mickyballadelli/matrix`
+- [ ] Create blog post or announcement
+- [ ] Update README with stable install command
+
+### Post-release
+- [ ] Monitor npm downloads and issues
+- [ ] Respond to community feedback
+- [ ] Plan next minor version features
+- [ ] Start tracking deprecations for breaking changes
+
+## Suggested Priority Order
+
+1. **Stability (Weeks 1-2)**
+   - Add memory leak tests
+   - Browser test automation in CI
+   - Type strictness verification
+   - Error boundary edge cases
+
+2. **Developer Experience (Weeks 2-3)**
+   - Error message improvements
+   - Common patterns documentation
+   - Troubleshooting guide
+   - DevTools enhancement
+
+3. **Testing & Examples (Weeks 3-4)**
+   - Integration tests for complex scenarios
+   - "Shopping Cart" and "Notes App" examples
+   - Performance regression detection
+   - Browser compatibility verification
+
+4. **Polish & Release Readiness (Week 4-5)**
+   - Security audit
+   - Pre-release checklist
+   - Performance benchmarking
+   - Final documentation review
+
+5. **V1 Release**
+   - Stable version 1.0.0
+   - Monitor adoption and feedback

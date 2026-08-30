@@ -16,7 +16,7 @@ Prism uses Matrix as a peer dependency. This keeps one reactive runtime in the f
 Applications install both packages:
 
 ```bash
-npm install prism-ui @mickyballadelli/matrix@next
+npm install prism-ui @mickyballadelli/matrix
 ```
 
 Vite JSX configuration:

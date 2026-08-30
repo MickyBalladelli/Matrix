@@ -3,7 +3,7 @@
 Create a Matrix app with Vite and JSX:
 
 ```bash
-npx create-matrix-app@next my-app
+npx create-matrix-app my-app
 cd my-app
 npm run dev
 ```
@@ -11,10 +11,10 @@ npm run dev
 Start from the official Blog example instead:
 
 ```bash
-npx create-matrix-app@next my-blog --example blog
+npx create-matrix-app my-blog --example blog
 ```
 
-Until the first npm release is published, that command returns E404.
+The generated app includes Matrix and Vite configuration ready for local development.
 
 The generated app contains:
 

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = new URL('../', import.meta.url)
 const rootPath = fileURLToPath(root)
-const cache = resolve(tmpdir(), 'matrix-npm-cache')
+const cache = resolve(rootPath, '.npm-cache')
 const fixture = await mkdtemp(resolve(tmpdir(), 'matrix-package-smoke-'))
 const trash = new URL('../Trash/', import.meta.url)
 

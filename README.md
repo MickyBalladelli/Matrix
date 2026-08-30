@@ -4,10 +4,10 @@ Matrix is a tiny reactive JavaScript framework. It uses signals, effects and com
 
 ## Getting started
 
-Install the alpha from npm. Matrix is ESM-only and has no runtime dependencies.
+Install Matrix from npm. Matrix is ESM-only and has no runtime dependencies.
 
 ```bash
-npm install @mickyballadelli/matrix@next
+npm install @mickyballadelli/matrix
 ```
 
 ```js
@@ -23,7 +23,7 @@ Before release, run `npm run verify:release`. It checks Node behavior, types, Ch
 Create a standalone Matrix + Vite app:
 
 ```bash
-npx create-matrix-app@next my-app
+npx create-matrix-app my-app
 cd my-app
 npm run dev
 ```

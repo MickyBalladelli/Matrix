@@ -121,14 +121,24 @@ function parsePackOutput(output) {
   const lines = output.trim().split(/\r?\n/)
 
   for (let index = lines.length - 1; index >= 0; index -= 1) {
-    if (!lines[index].trim().startsWith('[')) {
+    if (!['[', '{'].some(prefix => lines[index].trim().startsWith(prefix))) {
       continue
     }
 
     try {
       const parsed = JSON.parse(lines.slice(index).join('\n'))
-      if (Array.isArray(parsed) && parsed[0]?.files) {
-        return parsed[0]
+      if (Array.isArray(parsed)) {
+        const pack = parsed.find(entry => entry?.files)
+        if (pack) {
+          return pack
+        }
+      } else if (parsed?.files) {
+        return parsed
+      } else if (parsed && typeof parsed === 'object') {
+        const pack = Object.values(parsed).find(entry => entry?.files)
+        if (pack) {
+          return pack
+        }
       }
     } catch {
       continue

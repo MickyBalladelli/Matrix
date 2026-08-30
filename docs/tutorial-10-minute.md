@@ -8,7 +8,7 @@ This tutorial builds a small todo list with signals, a computed count, a form bi
 mkdir matrix-todos
 cd matrix-todos
 npm init -y
-npm install @mickyballadelli/matrix@next
+npm install @mickyballadelli/matrix
 npm install --save-dev vite
 npm pkg set scripts.dev="vite"
 npm pkg set scripts.build="vite build"
@@ -145,4 +145,4 @@ const app = mount(App, document.querySelector('#app'))
 app.unmount()
 ```
 
-For a generated starter with the same automatic JSX setup, use `npx create-matrix-app@next my-app` instead.
+For a generated starter with the same automatic JSX setup, use `npx create-matrix-app my-app` instead.

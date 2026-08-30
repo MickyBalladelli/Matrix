@@ -1,8 +1,8 @@
 # Matrix TODO: Path to V1 Stability
 
 Review date: 2026-08-30
-Current version: 0.1.0-alpha.1
-Published on npm: @mickyballadelli/matrix@next
+Current version: 1.0.0
+Release status: Stable release prepared locally; npm publication pending
 
 Audit note (2026-08-30): Done items were re-checked against the repo. Overclaimed `[x]` entries were reopened with a short gap note.
 

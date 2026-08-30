@@ -45,7 +45,7 @@ The public event `type` values currently include:
 | --- | --- | --- |
 | `renderer` | `dom:update` | `kind`, `element` or `parent`, `name` or `source` |
 | `scheduler` | `job:scheduled`, `flush:start`, `flush:end` | `flush`, `size` |
-| `logger` | `signal:update`, `signal:hot`, debug DOM events, and runtime diagnostics | `name`, `value`, `source`, `count`, diagnostic-specific fields |
+| `logger` | `signal:update`, `signal:hot`, debug DOM events, and runtime diagnostics | `name`, `value`, `source`, `count`, `stack`, diagnostic-specific fields |
 | `style` | `style:apply`, `style:dispose` | `element`, `definition` |
 
 Event objects are intentionally open-ended. Read the `type` first and treat optional fields defensively.

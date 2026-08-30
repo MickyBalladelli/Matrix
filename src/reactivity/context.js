@@ -1,3 +1,7 @@
+import { isDevelopment } from '../config.js'
+import { warnDevelopment } from '../utils/development.js'
+import { captureCallsite } from '../utils/diagnostics.js'
+
 let activeObserver = null
 let currentScope = null
 let currentRenderState = null
@@ -5,6 +9,7 @@ let currentRenderState = null
 const observerStack = []
 const scopeStack = []
 const renderStateStack = []
+const warnedUntrackedReads = new WeakSet()
 
 export function getActiveObserver() {
   return activeObserver
@@ -22,7 +27,18 @@ export function runWithObserver(observer, fn) {
 }
 
 export function track(source) {
-  if (!activeObserver || activeObserver === source) {
+  if (!activeObserver) {
+    if (isDevelopment() && !currentRenderState && !warnedUntrackedReads.has(source)) {
+      warnedUntrackedReads.add(source)
+      warnDevelopment(
+        `${source.kind} "${source.name || 'anonymous'}" was read outside an Effect or template. Use .peek() for an intentional non-reactive read.`,
+        { type: 'reactivity:untracked-read', kind: source.kind, name: source.name, source, stack: captureCallsite() }
+      )
+    }
+    return
+  }
+
+  if (activeObserver === source) {
     return
   }
 

@@ -37,7 +37,7 @@ function createComputed(fn, options) {
   }
 
   const equals = options.equals ?? Object.is
-  const source = createSource('computed')
+  const source = createSource('computed', options.name ?? '')
   const dependencies = new Set()
   let value
   let dirty = true

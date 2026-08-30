@@ -1,3 +1,17 @@
+export interface MatrixConfig {
+  development?: boolean
+  bindingWarningThreshold?: number
+}
+
+export function configure(options?: MatrixConfig): Readonly<{
+  development: boolean
+  bindingWarningThreshold: number
+}>
+export function getRuntimeConfig(): Readonly<{
+  development: boolean
+  bindingWarningThreshold: number
+}>
+
 export interface Signal<T> {
   readonly value: T
   readonly kind: 'signal'
@@ -160,17 +174,42 @@ export function createRouter(routes?: RouteDefinition[], options?: {
 export function routerView(router: Router, fallback?: unknown): Computed<unknown>
 
 export interface Form<T extends Record<string, unknown>> {
+  readonly name: string
   fields: { [K in keyof T]: Signal<T[K]> }
   values: Computed<T>
   errors: Signal<Record<string, unknown>>
   valid: Computed<boolean>
   validate(): Record<string, unknown>
+  validateField(name: string): unknown
+  inspect(): FormDebugSnapshot<T>
+  inspectField(name: string): FormFieldDebug<T[keyof T]> | undefined
   reset(values?: Partial<T>): void
+}
+
+export interface FormFieldDebug<T = unknown> {
+  name?: string
+  value: T
+  error: unknown
+  valid: boolean
+  hasValidator: boolean
+}
+
+export interface FormDebugSnapshot<T extends Record<string, unknown> = Record<string, unknown>> {
+  name: string
+  values: T
+  errors: Record<string, unknown>
+  valid: boolean
+  fields: Record<string, Omit<FormFieldDebug, 'name'>>
+}
+
+export interface FormOptions {
+  name?: string
 }
 
 export function createForm<T extends Record<string, unknown>>(
   initialValues: T,
-  validators?: Partial<{ [K in keyof T]: (value: T[K], values: T) => string | undefined }>
+  validators?: Partial<{ [K in keyof T]: (value: T[K], values: T) => string | undefined }>,
+  options?: FormOptions
 ): Form<T>
 
 export interface Resource<T> {

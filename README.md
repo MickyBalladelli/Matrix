@@ -122,6 +122,7 @@ mount(App, document.querySelector('#app'))
 Developer guides:
 
 - [Error messages](docs/errors.md)
+- [Development mode](docs/development-mode.md)
 - [IDE setup](docs/ide-setup.md)
 - [Build tool integration](docs/build-tools.md)
 - [Debugging](docs/debugging.md)
@@ -132,6 +133,7 @@ Developer guides:
 ## API
 
 - `signal(value)` creates reactive state with `.value`, `.set()`, `.update()` and `.subscribe()`.
+- `configure({ development: true })` enables extra runtime checks and diagnostics.
 - `effect(fn)` runs a function and automatically tracks its signals.
 - `computed(fn)` calculates a lazy derived value.
 - `batch(fn)` groups several writes into one update.

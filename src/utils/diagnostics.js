@@ -1,5 +1,16 @@
 import { emitPlugin } from '../plugins.js'
 
+const INTERNAL_FRAME_PATTERNS = [
+  '/src/utils/diagnostics.js',
+  '/src/components/index.js',
+  '/src/reactivity/context.js',
+  '/src/reactivity/source.js',
+  '/src/reactivity/signal.js',
+  '/src/reactivity/computed.js',
+  '/src/dom/template.js',
+  '/src/utils/form.js'
+]
+
 export function describeValue(value) {
   if (value === null) {
     return 'null'
@@ -31,7 +42,12 @@ export function describeValue(value) {
 
 export function warnDiagnostic(message, details = {}) {
   try {
-    globalThis.console?.warn?.(`[Matrix] ${message}`)
+    const output = `[Matrix] ${message}`
+    if (details.stack) {
+      globalThis.console?.warn?.(`${output}\n${details.stack}`)
+    } else {
+      globalThis.console?.warn?.(output)
+    }
   } catch {
     // Diagnostics must never break the application update path.
   }
@@ -56,7 +72,6 @@ export function captureCallsite() {
   return stack
     .split('\n')
     .slice(2)
-    .filter(line => !line.includes('/src/utils/diagnostics.js'))
-    .filter(line => !line.includes('/src/components/index.js'))
+    .filter(line => !INTERNAL_FRAME_PATTERNS.some(pattern => line.includes(pattern)))
     .join('\n')
 }

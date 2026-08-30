@@ -80,6 +80,12 @@ Fix: pass a valid CSS selector and callback.
 
 ## Reactivity and scopes
 
+### `configure() expects ...`
+
+Cause: runtime configuration received an invalid option value.
+
+Fix: pass an options object, use a boolean for `development`, and use a positive integer for `bindingWarningThreshold`.
+
 ### `Effect "<name>" changed dependencies ...`
 
 This warning means an Effect read a different set of signals or Computeds than on its previous run. That is often a stale-closure risk when asynchronous work is not cancelled.
@@ -227,6 +233,10 @@ Cause: two items in the same keyed list returned the same key. Matrix emits this
 Fix: use a stable unique ID. Do not use an array index when insertion or removal can reorder items.
 
 ## Forms, resources, styles, and routing
+
+### Development diagnostics
+
+With `configure({ development: true })`, Matrix reports common router and form mistakes through `console.warn` and the `logger` plugin point. Form validators should target an existing field, be functions, and return a string or `undefined`.
 
 ### `use:bind expects a writable signal`
 

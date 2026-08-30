@@ -1,12 +1,14 @@
 import {
   component,
   computed,
+  configure,
   css,
   cssVariables,
   createForm,
   createRouter,
   disposeStyle,
   errorBoundary,
+  getRuntimeConfig,
   html,
   jsx,
   keyed,
@@ -140,6 +142,35 @@ try {
 assert(duplicateKeyError?.message.includes('Duplicate list key: 1'), 'Les clés dupliquées doivent échouer clairement')
 assert(diagnosticEvents.some(event => event.type === 'list:duplicate-key' && event.key === 1), 'Une clé dupliquée doit produire un diagnostic avant l’erreur')
 diagnosticPlugin()
+
+const previousDevelopmentConfig = getRuntimeConfig()
+const developmentEvents = []
+const developmentPlugin = usePlugin({
+  install(api) {
+    return api.on('logger', event => developmentEvents.push(event))
+  }
+})
+configure({ development: true, bindingWarningThreshold: 1 })
+
+try {
+  html`<p>{count}</p>`
+  const largeBindingView = html`<p>${count}${doubled}</p>`
+  const largeBindingApp = mount(() => largeBindingView, host)
+  largeBindingApp.unmount()
+
+  const developmentRouter = createRouter([
+    { path: '/*rest', view: () => html`<p>catch all</p>` },
+    { path: '/later', view: () => html`<p>later</p>` }
+  ])
+  developmentRouter.dispose()
+} finally {
+  developmentPlugin()
+  configure(previousDevelopmentConfig)
+}
+
+assert(developmentEvents.some(event => event.type === 'template:forgotten-interpolation'), 'Une interpolation oubliée doit produire un diagnostic')
+assert(developmentEvents.some(event => event.type === 'performance:unoptimized-bindings'), 'Un template trop lié doit produire un avertissement de performance')
+assert(developmentEvents.some(event => event.type === 'router:misconfiguration' && event.issue === 'catch-all-order'), 'Une route catch-all mal placée doit produire un diagnostic')
 
 let templateError
 try {

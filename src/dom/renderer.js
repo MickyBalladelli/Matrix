@@ -17,12 +17,15 @@ import { applyCssVariables, applyStyle } from '../styles/index.js'
 import { bindInput } from '../utils/form.js'
 import { emitDebugEvent } from '../utils/debug.js'
 import { describeValue, warnDiagnostic } from '../utils/diagnostics.js'
+import { getRuntimeConfig } from '../config.js'
+import { warnDevelopment } from '../utils/development.js'
 import { isKeyedList } from './list.js'
 
 const EVENT_PREFIX = '@'
 const PROPERTY_PREFIX = '.'
 const BOOLEAN_PREFIX = '?'
 const URL_ATTRIBUTES = new Set(['href', 'src', 'action', 'formaction', 'poster', 'xlink:href'])
+const warnedBindingTemplates = new WeakSet()
 
 function isReactiveValue(value) {
   return Boolean(
@@ -59,6 +62,25 @@ function warnInvalidComponentOutput(instance, result, output) {
   warnDiagnostic(
     `Component "${name}" returned ${outputType}. Return html\`...\`, a component, a Signal or Computed, an array, a DOM node, or null. The value will render as text.`,
     { type: 'component:invalid-output', name, valueType: typeof output, source: result.render }
+  )
+}
+
+function warnUnoptimizedBindings(result, textBindings, attributeBindings) {
+  const bindingCount = textBindings.length + attributeBindings.length
+  const { development, bindingWarningThreshold: threshold } = getRuntimeConfig()
+  if (!development || bindingCount <= threshold || warnedBindingTemplates.has(result.strings)) {
+    return
+  }
+
+  warnedBindingTemplates.add(result.strings)
+  warnDevelopment(
+    `Template has ${bindingCount} dynamic bindings. Split large views into components or move derived work into Computeds to keep updates local.`,
+    {
+      type: 'performance:unoptimized-bindings',
+      bindingCount,
+      textBindings: textBindings.length,
+      attributeBindings: attributeBindings.length
+    }
   )
 }
 
@@ -734,6 +756,8 @@ function renderTemplate(result, parent, before, ownerScope) {
       attributeBindings.push({ element, name: attribute.name, parts })
     }
   }
+
+  warnUnoptimizedBindings(result, textBindings, attributeBindings)
 
   parent.insertBefore(fragment, end)
 

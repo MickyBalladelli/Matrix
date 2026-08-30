@@ -77,13 +77,13 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Warn about duplicate keys before runtime error
 
 ### Development mode
-- [ ] Add `development` mode flag that enables strict checks
-- [ ] Add warnings for prop mutations with helpful stack traces
-- [ ] Add warning for reading signals outside effect/template
-- [ ] Add detection for forgotten `${}` in template literals
-- [ ] Add warnings for common router misconfigurations
-- [ ] Add form field validation debugging helpers
-- [ ] Add performance warnings for unoptimized bindings
+- [x] Add `development` mode flag that enables strict checks
+- [x] Add warnings for prop mutations with helpful stack traces
+- [x] Add warning for reading signals outside effect/template
+- [x] Add detection for forgotten `${}` in template literals
+- [x] Add warnings for common router misconfigurations
+- [x] Add form field validation debugging helpers
+- [x] Add performance warnings for unoptimized bindings
 
 ### DevTools enhancements
 - [ ] Create browser DevTools extension (Chrome/Firefox/Edge)

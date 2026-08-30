@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { batch, component, computed, createScope, effect, onCleanup, signal, usePlugin } from '../src/index.js'
+import { batch, component, computed, configure, createForm, createScope, effect, getRuntimeConfig, onCleanup, signal, usePlugin } from '../src/index.js'
 
 test('signal et effect suivent une dépendance', () => {
   const count = signal(0)
@@ -113,6 +113,41 @@ test('un changement de dépendances signale le risque de fermeture obsolète', (
   assert(warning, 'Un changement de dépendances doit produire un diagnostic')
   assert.equal(warning.name, 'conditionalEffect')
   assert.equal(warning.staleClosureRisk, true)
+})
+
+test('le mode développement signale les lectures et mutations non réactives', () => {
+  const previousConfig = getRuntimeConfig()
+  const events = []
+  const stopPlugin = usePlugin({
+    install(api) {
+      return api.on('logger', event => events.push(event))
+    }
+  })
+
+  configure({ development: true })
+
+  try {
+    const outside = signal(1, { name: 'outside' })
+    assert.equal(outside.value, 1)
+
+    const props = component(() => null, { label: 'grog' }).props
+    assert.throws(() => {
+      props.label = 'changed'
+    }, /Component props are read-only/)
+
+    const form = createForm({ email: '' }, {
+      email: value => value ? undefined : 'required'
+    }, { name: 'signup' })
+    assert.equal(form.validateField('email'), 'required')
+    assert.equal(form.inspectField('email').valid, false)
+    assert.equal(form.inspect().name, 'signup')
+  } finally {
+    stopPlugin()
+    configure(previousConfig)
+  }
+
+  assert(events.some(event => event.type === 'reactivity:untracked-read' && event.name === 'outside'), 'Une lecture hors contexte réactif doit produire un diagnostic')
+  assert(events.some(event => event.type === 'component:prop-mutation'), 'Une mutation de props doit produire un diagnostic')
 })
 
 test('computed est cache et se recalcule après invalidation', () => {

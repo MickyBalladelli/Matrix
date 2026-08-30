@@ -1,8 +1,9 @@
 import { track } from './context.js'
 
-export function createSource(kind) {
+export function createSource(kind, name = '') {
   return {
     kind,
+    name,
     subscribers: new Set(),
     listeners: new Set()
   }

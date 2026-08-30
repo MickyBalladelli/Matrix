@@ -3,8 +3,36 @@ import {
   getCurrentComponent
 } from './context.js'
 import { captureCallsite, describeValue } from '../utils/diagnostics.js'
+import { warnDevelopment } from '../utils/development.js'
 
 export const COMPONENT_RESULT = Symbol('matrix.component.result')
+
+function warnPropMutation(name, operation, property) {
+  const propertyName = String(property)
+  warnDevelopment(
+    `Component "${name || 'anonymous'}" props are read-only. Cannot ${operation} "${propertyName}". Update the owner state instead.`,
+    {
+      type: 'component:prop-mutation',
+      name: name || 'anonymous',
+      operation,
+      property: propertyName,
+      stack: captureCallsite()
+    }
+  )
+}
+
+function readonlyProps(sourceProps, name) {
+  return new Proxy(sourceProps, {
+    set(target, property) {
+      warnPropMutation(name, 'set', property)
+      throw new TypeError('Component props are read-only')
+    },
+    deleteProperty(target, property) {
+      warnPropMutation(name, 'delete', property)
+      throw new TypeError('Component props are read-only')
+    }
+  })
+}
 
 export function component(render, props = {}, key) {
   if (typeof render !== 'function') {
@@ -12,14 +40,7 @@ export function component(render, props = {}, key) {
   }
 
   const sourceProps = props && typeof props === 'object' ? props : {}
-  const protectedProps = new Proxy(sourceProps, {
-    set() {
-      throw new TypeError('Component props are read-only')
-    },
-    deleteProperty() {
-      throw new TypeError('Component props are read-only')
-    }
-  })
+  const protectedProps = readonlyProps(sourceProps, render.name)
 
   const result = {
     [COMPONENT_RESULT]: true,
@@ -81,14 +102,7 @@ export function errorBoundary(render, fallback, props = {}) {
   }
 
   const protectedProps = props && typeof props === 'object'
-    ? new Proxy(props, {
-        set() {
-          throw new TypeError('Component props are read-only')
-        },
-        deleteProperty() {
-          throw new TypeError('Component props are read-only')
-        }
-      })
+    ? readonlyProps(props, render.name)
     : {}
 
   const result = {

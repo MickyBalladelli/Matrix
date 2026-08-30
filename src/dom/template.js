@@ -1,7 +1,12 @@
+import { captureCallsite } from '../utils/diagnostics.js'
+import { warnDevelopment } from '../utils/development.js'
+
 const templateCache = new WeakMap()
 
 const ATTRIBUTE_MARKER = /__MATRIX_ATTR_(\d+)__/g
 const TEXT_MARKER = /^matrix:text:(\d+)$/
+const FORGOTTEN_BRACES = /(?:^|[>\s])\{\s*([A-Za-z_$][\w$]*(?:\s*\.\s*[A-Za-z_$][\w$]*)*)\s*\}(?=\s|<|$)/
+const ESCAPED_INTERPOLATION = /\\\$\{\s*([^}]+)\}/
 
 export const TEMPLATE_RESULT = Symbol('matrix.template.result')
 
@@ -10,11 +15,41 @@ export function html(strings, ...values) {
     throw new TypeError('html() must be used as a tagged template')
   }
 
+  warnForgottenInterpolation(strings)
+
   return {
     [TEMPLATE_RESULT]: true,
     strings,
     values
   }
+}
+
+function warnForgottenInterpolation(strings) {
+  const source = strings.raw.join('')
+  const escapedMatch = ESCAPED_INTERPOLATION.exec(source)
+
+  if (escapedMatch) {
+    const expression = escapedMatch[1].trim()
+    const suggestion = '${' + expression + '}'
+    const escaped = '\\${' + expression + '}'
+    warnDevelopment(
+      `Template contains an escaped interpolation "${escaped}". Did you mean "${suggestion}"?`,
+      { type: 'template:forgotten-interpolation', expression, stack: captureCallsite() }
+    )
+    return
+  }
+
+  const bracesMatch = FORGOTTEN_BRACES.exec(source)
+  if (!bracesMatch) {
+    return
+  }
+
+  const expression = bracesMatch[1].replace(/\s*\.\s*/g, '.')
+  const suggestion = '${' + expression + '}'
+  warnDevelopment(
+    `Template contains "{${expression}}". Did you mean "${suggestion}"?`,
+    { type: 'template:forgotten-interpolation', expression, stack: captureCallsite() }
+  )
 }
 
 export function isTemplateResult(value) {

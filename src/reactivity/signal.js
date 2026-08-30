@@ -27,7 +27,7 @@ export function signal(initialValue, options = {}) {
 
 function createSignal(initialValue, options) {
   const equals = options.equals ?? Object.is
-  const source = createSource('signal')
+  const source = createSource('signal', options.name ?? '')
   let value = initialValue
   let disposed = false
 

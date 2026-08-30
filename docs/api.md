@@ -195,6 +195,19 @@ Stable for this alpha: `signal`, `computed`, `effect`, `batch`, `html`, `compone
 
 ## Plugins
 
+### Runtime configuration
+
+`configure({ development: true })` enables extra warnings for prop mutations, untracked signal reads, likely template interpolation typos, router and form misconfigurations, and templates with many dynamic bindings. `getRuntimeConfig()` returns the active settings. The large-template warning defaults to `bindingWarningThreshold: 50`.
+
+```js
+import { configure, getRuntimeConfig } from '@mickyballadelli/matrix'
+
+configure({ development: true, bindingWarningThreshold: 25 })
+console.log(getRuntimeConfig())
+```
+
+`createForm(initialValues, validators, { name })` adds `validateField()`, `inspectField()`, and `inspect()` debugging helpers to the returned form.
+
 `usePlugin({ install(api) { ... } })` listens to four extension points:
 
 - `renderer`: `dom:update` events with the binding kind and affected element or parent.
@@ -232,7 +245,7 @@ Hooks are synchronous and run on the application update path. Keep them cheap an
 - `beforeEach` and `afterEach` may be async. `navigate()` resolves to `false` when a guard blocks navigation.
 - A route may define `redirect` as a path or function. Redirects replace history and stop after ten hops.
 - `routerView(router, fallback)` turns the current route into a view.
-- `createForm(initialValues, validators)` provides fields, values, errors, valid, validate and reset.
+- `createForm(initialValues, validators, options)` provides fields, values, errors, valid, validate, validateField, inspectField, inspect and reset.
 - `resource(loader, options)` provides status, data, error, loading, reload and dispose.
 - `createLogger`, `watchDebug`, `inspect`, `inspectEffects` and `setDevtoolsHook` support debugging.
 

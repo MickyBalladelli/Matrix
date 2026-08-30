@@ -85,6 +85,17 @@ mount(App, document.querySelector('#app'))
 
 `form.validate()` updates `form.errors` and returns the same error object. `form.valid` is a Computed that is `true` when there are no errors. Render errors with an `aria-live` region or `role="alert"` when the message changes the user's next action.
 
+For development inspection, give the form a name and use `validateField()`, `inspectField()`, or `inspect()`:
+
+```js
+const form = createForm(initialValues, validators, { name: 'profile' })
+form.validateField('email')
+console.table(form.inspectField('email'))
+console.log(form.inspect())
+```
+
+These helpers return snapshots and do not create reactive subscriptions. In development mode, validator errors, unknown fields, and invalid validator definitions are also sent to the `logger` plugin point.
+
 ## Complex values
 
 Fields can hold arrays or objects because Matrix signals use the value type supplied in `initialValues`:

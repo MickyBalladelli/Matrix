@@ -2,6 +2,8 @@ import { computed, signal } from '../reactivity/index.js'
 import { component } from '../components/index.js'
 import { onCleanup } from '../reactivity/scope.js'
 import { getCurrentRenderState, runWithRenderState } from '../reactivity/context.js'
+import { isDevelopment } from '../config.js'
+import { warnDevelopment } from './development.js'
 
 function normalizePath(path) {
   const value = String(path || '/')
@@ -56,9 +58,102 @@ function matchRoute(routes, path) {
   return null
 }
 
+function validateRoutes(routeDefinitions) {
+  const seenPaths = new Map()
+
+  for (let index = 0; index < routeDefinitions.length; index += 1) {
+    const route = routeDefinitions[index]
+    if (!route || typeof route !== 'object') {
+      throw new TypeError(`createRouter() route ${index} must be an object with a path`)
+    }
+
+    if (typeof route.path !== 'string' || route.path.trim() === '') {
+      throw new TypeError(`createRouter() route ${index} must define a non-empty path`)
+    }
+
+    const normalizedPath = normalizePath(route.path)
+    if (!route.path.startsWith('/')) {
+      warnDevelopment(
+        `Router route "${route.path}" does not start with "/" and may never match browser paths.`,
+        { type: 'router:misconfiguration', issue: 'relative-path', index, path: route.path }
+      )
+    }
+
+    if (seenPaths.has(normalizedPath)) {
+      warnDevelopment(
+        `Router defines "${normalizedPath}" more than once. The first matching route wins.`,
+        { type: 'router:misconfiguration', issue: 'duplicate-path', index, path: normalizedPath, firstIndex: seenPaths.get(normalizedPath) }
+      )
+    } else {
+      seenPaths.set(normalizedPath, index)
+    }
+
+    const hasView = typeof route.view === 'function'
+    const hasRedirect = route.redirect !== undefined
+    if (route.view !== undefined && !hasView) {
+      warnDevelopment(
+        `Router view for "${normalizedPath}" is not a function and was ignored.`,
+        { type: 'router:misconfiguration', issue: 'invalid-view', index, path: normalizedPath }
+      )
+    }
+
+    if (hasRedirect && typeof route.redirect !== 'string' && typeof route.redirect !== 'function') {
+      warnDevelopment(
+        `Router redirect for "${normalizedPath}" must be a path string or function.`,
+        { type: 'router:misconfiguration', issue: 'invalid-redirect', index, path: normalizedPath }
+      )
+    }
+
+    if (!hasView && !hasRedirect) {
+      warnDevelopment(
+        `Router route "${normalizedPath}" has neither a view nor a redirect. It will render the router fallback.`,
+        { type: 'router:misconfiguration', issue: 'missing-view', index, path: normalizedPath }
+      )
+    }
+
+    if (hasView && hasRedirect) {
+      warnDevelopment(
+        `Router route "${normalizedPath}" has both a view and a redirect. The redirect takes precedence.`,
+        { type: 'router:misconfiguration', issue: 'view-and-redirect', index, path: normalizedPath }
+      )
+    }
+
+    const parameterNames = [...route.path.matchAll(/:([^/]+)/g)].map(match => match[1])
+    if (new Set(parameterNames).size !== parameterNames.length) {
+      warnDevelopment(
+        `Router route "${normalizedPath}" repeats a parameter name. Use unique names for predictable route params.`,
+        { type: 'router:misconfiguration', issue: 'duplicate-parameter', index, path: normalizedPath }
+      )
+    }
+
+    const hasCatchAll = route.path.split('/').some(segment => segment.startsWith('*'))
+    if (hasCatchAll && index < routeDefinitions.length - 1) {
+      warnDevelopment(
+        `Router catch-all route "${normalizedPath}" is not last. Later routes will be unreachable.`,
+        { type: 'router:misconfiguration', issue: 'catch-all-order', index, path: normalizedPath }
+      )
+    }
+
+    if (typeof route.redirect === 'string' && normalizePath(route.redirect) === normalizedPath) {
+      warnDevelopment(
+        `Router route "${normalizedPath}" redirects to itself and will hit the redirect limit.`,
+        { type: 'router:misconfiguration', issue: 'self-redirect', index, path: normalizedPath }
+      )
+    }
+  }
+}
+
 export function createRouter(routeDefinitions = [], options = {}) {
   if (typeof window === 'undefined') {
     throw new Error('createRouter() must be used in a browser')
+  }
+
+  if (!Array.isArray(routeDefinitions)) {
+    throw new TypeError('createRouter() expects an array of route definitions')
+  }
+
+  if (!options || typeof options !== 'object' || Array.isArray(options)) {
+    throw new TypeError('createRouter() expects an options object')
   }
 
   const renderState = getCurrentRenderState()
@@ -83,6 +178,28 @@ export function createRouter(routeDefinitions = [], options = {}) {
 }
 
 function createRouterState(routeDefinitions, options) {
+  validateRoutes(routeDefinitions)
+  if (options.beforeEach !== undefined && typeof options.beforeEach !== 'function') {
+    warnDevelopment('Router beforeEach must be a function and was ignored.', {
+      type: 'router:misconfiguration',
+      issue: 'invalid-before-each'
+    })
+  }
+
+  if (options.afterEach !== undefined && typeof options.afterEach !== 'function') {
+    warnDevelopment('Router afterEach must be a function and was ignored.', {
+      type: 'router:misconfiguration',
+      issue: 'invalid-after-each'
+    })
+  }
+
+  if (options.base !== undefined && typeof options.base !== 'string') {
+    warnDevelopment('Router base should be a string path such as "/admin".', {
+      type: 'router:misconfiguration',
+      issue: 'invalid-base'
+    })
+  }
+
   const routes = routeDefinitions.map(route => ({
     ...route,
     matcher: compileRoute(route.path)
@@ -97,6 +214,8 @@ function createRouterState(routeDefinitions, options) {
   const current = computed(() => matchRoute(routes, path.value))
   let started = false
   let disposed = false
+  let warnedUnstartedNavigation = false
+  const warnedUnmatchedPaths = new Set()
 
   const onPopState = () => {
     path.value = normalizePath(stripBase(window.location.pathname))
@@ -110,6 +229,10 @@ function createRouterState(routeDefinitions, options) {
     }
 
     if (started) {
+      warnDevelopment(
+        'Router.start() was called more than once. The second call is ignored.',
+        { type: 'router:misconfiguration', issue: 'duplicate-start' }
+      )
       return stop
     }
 
@@ -145,6 +268,14 @@ function createRouterState(routeDefinitions, options) {
       throw new Error('Cannot navigate a disposed router')
     }
 
+    if (isDevelopment() && !started && !warnedUnstartedNavigation) {
+      warnedUnstartedNavigation = true
+      warnDevelopment(
+        'Router.navigate() was called before router.start(). Browser back/forward changes will not be observed.',
+        { type: 'router:misconfiguration', issue: 'navigate-before-start' }
+      )
+    }
+
     const redirectDepth = navigationOptions._redirectDepth ?? 0
     if (redirectDepth > 10) {
       throw new Error('Router redirect limit exceeded')
@@ -159,10 +290,34 @@ function createRouterState(routeDefinitions, options) {
     const target = `${base}${normalizedPath}${url.search}${url.hash}`
     const destination = matchRoute(routes, normalizedPath)
 
+    if (isDevelopment() && !destination && !warnedUnmatchedPaths.has(normalizedPath)) {
+      warnedUnmatchedPaths.add(normalizedPath)
+      warnDevelopment(
+        `No router route matches "${normalizedPath}". Add a route or provide a routerView fallback.`,
+        { type: 'router:misconfiguration', issue: 'unmatched-path', path: normalizedPath }
+      )
+    }
+
     if (destination?.redirect) {
       const redirectTarget = typeof destination.redirect === 'function'
         ? destination.redirect({ route: destination, path: normalizedPath, search: url.search, hash: url.hash })
         : destination.redirect
+
+      if (typeof redirectTarget !== 'string') {
+        warnDevelopment(
+          `Router redirect for "${normalizedPath}" did not return a path string.`,
+          { type: 'router:misconfiguration', issue: 'invalid-redirect', path: normalizedPath }
+        )
+      }
+
+      const redirectUrl = new URL(String(redirectTarget || '/'), window.location.href)
+      const redirectPath = normalizePath(stripBase(redirectUrl.pathname))
+      if (redirectPath === normalizedPath && redirectUrl.search === url.search && redirectUrl.hash === url.hash) {
+        warnDevelopment(
+          `Router route "${normalizedPath}" redirects to itself and will hit the redirect limit.`,
+          { type: 'router:misconfiguration', issue: 'self-redirect', path: normalizedPath }
+        )
+      }
 
       return navigate(redirectTarget, {
         ...navigationOptions,

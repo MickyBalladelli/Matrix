@@ -16,6 +16,8 @@ if (previousInfo?.url && previousInfo.url !== import.meta.url) {
 }
 globalThis[runtimeKey] = runtimeInfo
 
+export { configure, getRuntimeConfig } from './config.js'
+
 export {
   batch,
   computed,

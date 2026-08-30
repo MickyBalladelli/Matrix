@@ -25,7 +25,7 @@ const requestedFixture = process.env.MATRIX_BROWSER_FIXTURE
   ?? (fixtureFlagIndex >= 0 ? process.argv[fixtureFlagIndex + 1] : undefined)
 const fixtures = requestedFixture
   ? [requestedFixture.replace(/^\/+/, '')]
-  : ['test/dom.browser.html', 'test/integration.browser.html', 'test/examples.browser.html']
+  : ['test/dom.browser.html', 'test/integration.browser.html', 'test/examples.browser.html', 'test/edge-cases.browser.html']
 
 if (selectedBrowsers.some(([, browserType]) => !browserType)) {
   throw new Error(`Unknown browser "${requestedBrowser}". Use one of: ${Object.keys(browserTypes).join(', ')}${suggestClosest(requestedBrowser, Object.keys(browserTypes))}`)

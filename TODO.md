@@ -114,14 +114,14 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Each example should include tests and performance notes
 
 ### Edge cases
-- [ ] Test re-rendering during unmount
-- [ ] Test signal updates during effect cleanup
-- [ ] Test component updates during mount callbacks
-- [ ] Test router navigation during component mount/unmount
-- [ ] Test form submission with component unmount
-- [ ] Test CSS style injection timing edge cases
-- [ ] Test very long text content in templates
-- [ ] Test rapid mounting/unmounting of same component
+- [x] Test re-rendering during unmount
+- [x] Test signal updates during effect cleanup
+- [x] Test component updates during mount callbacks
+- [x] Test router navigation during component mount/unmount
+- [x] Test form submission with component unmount
+- [x] Test CSS style injection timing edge cases
+- [x] Test very long text content in templates
+- [x] Test rapid mounting/unmounting of same component
 
 ## Performance: Benchmarks and Regression Prevention
 

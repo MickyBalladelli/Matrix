@@ -2,9 +2,10 @@
 
 - `reactivity.test.js` contains Node unit tests for Matrix's reactive engine.
 - `dom.browser.html` loads `dom.browser.js` in a browser and checks rendering, components, styles, forms and keyed lists.
+- `integration.browser.html` loads `integration.browser.js` and checks complete forms, guarded routing, redirects, themes, nested composition, mixed syntax, SVG namespaces, touch gestures, and keyboard flows.
 - `npm run test:types` checks all public declarations and strict JSX fixtures, including read-only props, reactive props, intrinsic attributes and event names.
 
-`npm run test:browser` serves the repository and runs the suite in Chromium, Firefox, and WebKit. The HTML file can still be opened directly for a manual pass.
+`npm run test:browser` serves the repository and runs both browser suites in Chromium, Firefox, and WebKit. Use `--fixture test/integration.browser.html` to run only the integration fixture. The HTML files can still be opened directly for a manual pass.
 
 Pass `--browser chromium`, `--browser firefox` or `--browser webkit` to run one engine.
 

@@ -97,14 +97,14 @@ Published on npm: @mickyballadelli/matrix@next
 ## Testing: Comprehensive Coverage
 
 ### Integration tests
-- [ ] Test complex form with conditional fields, validation, async submission
-- [ ] Test multi-page router with guards, transitions, redirects
-- [ ] Test dynamic theme switching with CSS variable updates
-- [ ] Test component composition with deeply nested props
-- [ ] Test mixed JSX and template literal syntax
-- [ ] Test SVG and namespace handling in depth
-- [ ] Test mobile touch events and gestures
-- [ ] Test keyboard navigation through router links and form fields
+- [x] Test complex form with conditional fields, validation, async submission
+- [x] Test multi-page router with guards, transitions, redirects
+- [x] Test dynamic theme switching with CSS variable updates
+- [x] Test component composition with deeply nested props
+- [x] Test mixed JSX and template literal syntax
+- [x] Test SVG and namespace handling in depth
+- [x] Test mobile touch events and gestures
+- [x] Test keyboard navigation through router links and form fields
 
 ### Example applications
 - [ ] Create "Shopping Cart" example (routing, forms, API calls, state)

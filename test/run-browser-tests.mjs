@@ -20,9 +20,22 @@ const requestedBrowser = process.env.MATRIX_BROWSER
 const selectedBrowsers = requestedBrowser
   ? [[requestedBrowser, browserTypes[requestedBrowser]]]
   : Object.entries(browserTypes)
+const fixtureFlagIndex = process.argv.indexOf('--fixture')
+const requestedFixture = process.env.MATRIX_BROWSER_FIXTURE
+  ?? (fixtureFlagIndex >= 0 ? process.argv[fixtureFlagIndex + 1] : undefined)
+const fixtures = requestedFixture
+  ? [requestedFixture.replace(/^\/+/, '')]
+  : ['test/dom.browser.html', 'test/integration.browser.html']
 
 if (selectedBrowsers.some(([, browserType]) => !browserType)) {
   throw new Error(`Unknown browser "${requestedBrowser}". Use one of: ${Object.keys(browserTypes).join(', ')}${suggestClosest(requestedBrowser, Object.keys(browserTypes))}`)
+}
+
+for (const fixture of fixtures) {
+  const file = resolve(root, fixture)
+  if (!file.startsWith(`${root}${sep}`)) {
+    throw new Error(`Browser fixture must be inside the repository: ${fixture}`)
+  }
 }
 
 const timeout = Number(process.env.MATRIX_BROWSER_TIMEOUT ?? 30000)
@@ -51,26 +64,32 @@ const { port } = server.address()
 try {
   for (const [browserName, browserType] of selectedBrowsers) {
     const browser = await browserType.launch()
-    const page = await browser.newPage()
-    const failures = []
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        failures.push(`${browserName} console: ${message.text()}`)
-      }
-    })
-    page.on('pageerror', error => {
-      failures.push(`${browserName} pageerror: ${error.stack || error.message}`)
-    })
-
     try {
-      await page.goto(`http://127.0.0.1:${port}/test/dom.browser.html`)
-      await page.waitForFunction(() => window.__MATRIX_TEST_RESULT__ === 'passed', null, { timeout })
+      for (const fixture of fixtures) {
+        const page = await browser.newPage()
+        const failures = []
+        page.on('console', message => {
+          if (message.type() === 'error') {
+            failures.push(`${browserName} ${fixture} console: ${message.text()}`)
+          }
+        })
+        page.on('pageerror', error => {
+          failures.push(`${browserName} ${fixture} pageerror: ${error.stack || error.message}`)
+        })
 
-      if (failures.length > 0) {
-        throw new Error(failures.join('\n'))
+        try {
+          await page.goto(`http://127.0.0.1:${port}/${fixture}`)
+          await page.waitForFunction(() => window.__MATRIX_TEST_RESULT__ === 'passed', null, { timeout })
+
+          if (failures.length > 0) {
+            throw new Error(failures.join('\n'))
+          }
+
+          console.log(`${browserName} ${fixture} passed`)
+        } finally {
+          await page.close()
+        }
       }
-
-      console.log(`${browserName} passed`)
     } finally {
       await browser.close()
     }

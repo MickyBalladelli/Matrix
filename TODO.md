@@ -47,13 +47,13 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Add "CSS Scoping" guide with complex selector examples and limitations
 
 ### Developer experience docs
-- [ ] Document all error messages with causes and solutions
-- [ ] Add "IDE Setup" guide for JSX autocomplete and type hints
-- [ ] Create "Build Tool Integration" guide for Vite, Rollup, Webpack, esbuild
-- [ ] Document "Debugging" with browser DevTools tips and Matrix logger
-- [ ] Add "DevTools Integration" guide for custom plugins
-- [ ] Write "Testing Strategies" with example test suites
-- [ ] Document "Accessibility Checklist" for applications
+- [x] Document all error messages with causes and solutions
+- [x] Add "IDE Setup" guide for JSX autocomplete and type hints
+- [x] Create "Build Tool Integration" guide for Vite, Rollup, Webpack, esbuild
+- [x] Document "Debugging" with browser DevTools tips and Matrix logger
+- [x] Add "DevTools Integration" guide for custom plugins
+- [x] Write "Testing Strategies" with example test suites
+- [x] Document "Accessibility Checklist" for applications
 
 ### API documentation
 - [ ] Document all plugin extension points with examples

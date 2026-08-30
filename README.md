@@ -119,6 +119,16 @@ mount(App, document.querySelector('#app'))
 - [Security](docs/security.md)
 - [API reference](docs/api.md)
 
+Developer guides:
+
+- [Error messages](docs/errors.md)
+- [IDE setup](docs/ide-setup.md)
+- [Build tool integration](docs/build-tools.md)
+- [Debugging](docs/debugging.md)
+- [DevTools integration](docs/devtools.md)
+- [Testing strategies](docs/testing-strategies.md)
+- [Accessibility checklist](docs/accessibility.md)
+
 ## API
 
 - `signal(value)` creates reactive state with `.value`, `.set()`, `.update()` and `.subscribe()`.

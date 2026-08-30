@@ -100,18 +100,42 @@ try {
       for (const fixture of fixtures) {
         const page = await context.newPage()
         const failures = []
+        let rejectPageFailure
+        const pageFailure = new Promise((_, reject) => {
+          rejectPageFailure = reject
+        })
+        const recordFailure = failure => {
+          failures.push(failure)
+          rejectPageFailure?.(new Error(failure))
+        }
         page.on('console', message => {
           if (message.type() === 'error') {
-            failures.push(`${browserName} ${fixture} console: ${message.text()}`)
+            recordFailure(`${browserName} ${fixture} console: ${message.text()}`)
           }
         })
         page.on('pageerror', error => {
-          failures.push(`${browserName} ${fixture} pageerror: ${error.stack || error.message}`)
+          recordFailure(`${browserName} ${fixture} pageerror: ${error.stack || error.message}`)
+        })
+        page.on('response', response => {
+          if (response.status() >= 400) {
+            recordFailure(`${browserName} ${fixture} response ${response.status()}: ${response.url()}`)
+          }
         })
 
         try {
           await page.goto(`http://127.0.0.1:${port}/${fixture}`)
-          await page.waitForFunction(() => window.__MATRIX_TEST_RESULT__ === 'passed', null, { timeout })
+          try {
+            await Promise.race([
+              page.waitForFunction(() => window.__MATRIX_TEST_RESULT__ === 'passed', null, { timeout }),
+              pageFailure
+            ])
+          } catch (error) {
+            if (failures.length > 0) {
+              throw new Error(failures.join('\n'))
+            }
+
+            throw new Error(`${browserName} ${fixture} did not report success within ${timeout}ms`, { cause: error })
+          }
 
           if (failures.length > 0) {
             throw new Error(failures.join('\n'))

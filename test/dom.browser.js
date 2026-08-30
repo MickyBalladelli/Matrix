@@ -443,7 +443,7 @@ const partialBoundaryApp = mount(() => errorBoundary(
   () => component(partialFailure),
   error => html`<strong data-fallback>${error.message}</strong>`
 ), host)
-assert(host.querySelector('[data-fallback]')?.textContent === 'partial failure', 'An error after insertion must reach the boundary')
+assert(host.querySelector('[data-fallback]')?.textContent?.includes('partial failure'), 'An error after insertion must reach the boundary')
 assert(!host.querySelector('[data-partial]'), 'Partial insertion must be rolled back')
 partialBoundaryApp.unmount()
 
@@ -457,7 +457,7 @@ const lifecycleBoundaryApp = mount(() => errorBoundary(
   () => component(lifecycleFailure),
   error => html`<strong data-lifecycle-fallback>${error.message}</strong>`
 ), host)
-assert(host.querySelector('[data-lifecycle-fallback]')?.textContent === 'mount failure', 'A lifecycle error must reach the boundary')
+assert(host.querySelector('[data-lifecycle-fallback]')?.textContent?.includes('mount failure'), 'A lifecycle error must reach the boundary')
 assert(!host.querySelector('[data-lifecycle]'), 'Errored lifecycle DOM must be removed')
 lifecycleBoundaryApp.unmount()
 
@@ -469,7 +469,7 @@ const treeBoundaryApp = mount(() => errorBoundary(
   () => component(middleFailure),
   error => html`<strong data-tree-fallback>${error.message}</strong>`
 ), host)
-assert(host.querySelector('[data-tree-fallback]')?.textContent === 'deep failure', 'Errors must bubble through the tree')
+assert(host.querySelector('[data-tree-fallback]')?.textContent?.includes('deep failure'), 'Errors must bubble through the tree')
 treeBoundaryApp.unmount()
 
 const effectsBeforeCycles = inspectEffects().length

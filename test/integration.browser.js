@@ -318,9 +318,8 @@ const submitKeyboard = () => {
 let tabEvents = 0
 const keyboardApp = mount(() => html`
   <main data-keyboard-root>
-    <a data-keyboard-link href="/keyboard-next" @keydown=${event => {
+    <a data-keyboard-link href="/keyboard-next" @keydown.prevent=${event => {
       if (event.key === 'Enter') {
-        event.preventDefault()
         keyboardRouter.navigate('/keyboard-next')
       }
     }}>Next page</a>

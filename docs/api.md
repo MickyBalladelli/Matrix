@@ -18,11 +18,56 @@ Runs `fn` immediately and after every dependency change. Returns `stop()`. A fun
 
 ### `batch(fn)`
 
-Groups notifications produced during `fn`.
+Groups notifications produced during `fn` and returns the callback's result. Use it when one command changes several sources:
+
+```js
+batch(() => {
+  firstName.value = 'Ada'
+  lastName.value = 'Lovelace'
+  status.value = 'ready'
+})
+```
+
+Effects with the default `sync` flush run after the batch callback finishes. Nested batches flush only when the outermost batch finishes. The callback is synchronous: do not hold a batch open across an `await`.
+
+Batching does not mutate objects for you and does not bypass equality checks. Replace an object or array reference when its contents change. Use `flushJobs()` only when a deterministic test or debug harness needs to drain queued microtask work.
 
 ### `createScope(parent?)`, `disposeScope(scope)`, `onCleanup(fn)`
 
-Create and clean up groups of effects. `scope.run(fn)` activates the scope while `fn` runs.
+Create and clean up groups of Effects, Computeds, resources, and other cleanup callbacks. `scope.run(fn)` activates the scope while `fn` runs:
+
+```js
+const scope = createScope()
+
+scope.run(() => {
+  effect(() => console.log(count.value), { name: 'logger' })
+  onCleanup(() => console.log('view cleanup'))
+  scope.add(() => console.log('manual cleanup'))
+})
+
+disposeScope(scope)
+```
+
+Scopes can be nested. Disposing a parent disposes its child scopes first, then the parent's cleanup callbacks. `onCleanup` only works while a scope is active; use `scope.add` when registering from outside `scope.run`.
+
+### Computed with a custom setter
+
+The object form of `computed` exposes a controlled write path. The getter remains reactive, while the setter decides which source may change:
+
+```js
+const celsius = signal(20)
+const fahrenheit = computed({
+  get: () => celsius.value * 9 / 5 + 32,
+  set: value => {
+    celsius.value = (value - 32) * 5 / 9
+  }
+})
+
+console.log(fahrenheit.value)
+fahrenheit.set(212)
+```
+
+Do not write to a source from its own getter. A Computed without `set` is read-only.
 
 ## DOM
 
@@ -103,6 +148,29 @@ Dynamic `javascript:`, `vbscript:` and `data:` URLs are rejected in URL attribut
 - `inject(key, fallback?)` reads a value provided by an ancestor.
 - `errorBoundary(render, fallback, props?)` renders a fallback view if a descendant throws.
 
+### Lifecycle order
+
+`onMount` runs after the component's view is inserted. If a parent renders a child, the child mounts before the parent mount callback. Cleanup runs in the reverse tree direction: the child is disposed before the parent. This includes Effects, event listeners, resources, `onUnmount` callbacks, and cleanup functions returned by `onMount`.
+
+```js
+const Child = () => {
+  onMount(() => {
+    console.log('child mounted')
+    return () => console.log('child mount cleanup')
+  })
+  onUnmount(() => console.log('child unmounted'))
+  return html`<p>Child</p>`
+}
+
+const Parent = () => {
+  onMount(() => console.log('parent mounted'))
+  onUnmount(() => console.log('parent unmounted'))
+  return html`<section>${component(Child)}</section>`
+}
+```
+
+Expected tree-level order is child mount, parent mount; then child cleanup, parent cleanup. Register related cleanup in the scope that owns the resource.
+
 ## Styling
 
 - `css` creates a scoped stylesheet.
@@ -123,19 +191,38 @@ These surfaces may change before 1.0:
 
 Stable for this alpha: `signal`, `computed`, `effect`, `batch`, `html`, `component`, `mount`, `css`, `cssVariables`, and `keyed`.
 
-## Lightweight plugins
+## Plugins
 
-`usePlugin({ install(api) { ... } })` listens to the `renderer`, `scheduler`, `logger` and `style` extension points.
+`usePlugin({ install(api) { ... } })` listens to four extension points:
+
+- `renderer`: `dom:update` events with the binding kind and affected element or parent.
+- `scheduler`: `job:scheduled`, `flush:start`, and `flush:end` events.
+- `logger`: `signal:update`, `signal:hot`, and debug DOM events.
+- `style`: `style:apply` and `style:dispose` events.
+
+Each `api.on(point, hook)` call returns an unregister function. The plugin's optional cleanup runs before Matrix removes its registrations:
 
 ```js
 const stopPlugin = usePlugin({
   install(api) {
-    return api.on('renderer', event => console.debug(event))
+    const stopRenderer = api.on('renderer', event => {
+      console.debug(event.type, event.kind, event.name)
+    })
+    const stopScheduler = api.on('scheduler', event => {
+      console.debug(event.type, event.flush, event.size)
+    })
+
+    return () => {
+      stopRenderer()
+      stopScheduler()
+    }
   }
 })
 
 stopPlugin()
 ```
+
+Hooks are synchronous and run on the application update path. Keep them cheap and do not mutate event objects. See [DevTools integration](./devtools.md) for an inspector bridge.
 
 ## Utilities
 
@@ -146,3 +233,58 @@ stopPlugin()
 - `createForm(initialValues, validators)` provides fields, values, errors, valid, validate and reset.
 - `resource(loader, options)` provides status, data, error, loading, reload and dispose.
 - `createLogger`, `watchDebug`, `inspect`, `inspectEffects` and `setDevtoolsHook` support debugging.
+
+### Router guard and redirect example
+
+```js
+const router = createRouter([
+  { path: '/', view: Home },
+  { path: '/login', view: Login },
+  { path: '/admin', view: Admin },
+  { path: '/old-dashboard', redirect: '/admin' },
+  {
+    path: '/invite/:token',
+    redirect: ({ route }) => `/signup?invite=${encodeURIComponent(route.params.token)}`
+  }
+], {
+  beforeEach: async ({ to }) => {
+    if (to?.path === '/admin' && !session.value) return false
+    return true
+  },
+  afterEach: ({ to }) => {
+    document.title = to?.path ?? 'Matrix app'
+  }
+})
+
+router.start()
+await router.navigate('/admin')
+```
+
+Call `router.stop()` to remove the `popstate` listener while retaining state. Call `router.dispose()` when the router and its reactive sources are no longer needed. Use `replace: true` for navigation that should not add a history entry and `scroll: false` to keep the current scroll position. See [Advanced routing](./routing-advanced.md) for deep links and transitions.
+
+### Debug output
+
+`inspect(source)` returns a snapshot with this shape:
+
+```js
+{
+  kind: 'signal',
+  value: 3,
+  subscribers: 1,
+  listeners: 0,
+  effectSubscribers: ['counter-label']
+}
+```
+
+`kind` is `signal` or `computed`. `subscribers` counts reactive consumers, `listeners` counts direct `subscribe` listeners, and `effectSubscribers` lists names of subscribed Effects. An unnamed Effect appears as an empty string. The `value` can be a live object reference.
+
+`inspectEffects()` returns active Effects only:
+
+```js
+[
+  { name: 'counter-label', dependencies: 1 },
+  { name: '', dependencies: 2 }
+]
+```
+
+The `dependencies` count is the number of sources read by the latest Effect run. Stopping an Effect removes it from this list. See [Debugging](./debugging.md) for logging and browser workflows.

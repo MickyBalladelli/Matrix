@@ -56,13 +56,13 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Document "Accessibility Checklist" for applications
 
 ### API documentation
-- [ ] Document all plugin extension points with examples
-- [ ] Add examples for router guards, transitions, and redirects
-- [ ] Document `batch()` usage patterns and gotchas
-- [ ] Add `scope.run()` usage examples
-- [ ] Document lifecycle hook execution order
-- [ ] Add computed with custom setters example
-- [ ] Document `inspect()` and `inspectEffects()` output format
+- [x] Document all plugin extension points with examples
+- [x] Add examples for router guards, transitions, and redirects
+- [x] Document `batch()` usage patterns and gotchas
+- [x] Add `scope.run()` usage examples
+- [x] Document lifecycle hook execution order
+- [x] Add computed with custom setters example
+- [x] Document `inspect()` and `inspectEffects()` output format
 
 ## Developer Experience: Tools and Errors
 

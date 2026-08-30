@@ -9,6 +9,11 @@ execFileSync(process.execPath, [resolve(root, 'bench/reactivity.js'), '--check']
   stdio: 'inherit'
 })
 
+execFileSync(process.execPath, ['--expose-gc', resolve(root, 'bench/memory.js')], {
+  cwd: root,
+  stdio: 'inherit'
+})
+
 execFileSync(process.execPath, [resolve(root, 'bench/run-browser-benchmark.mjs'), '--check'], {
   cwd: root,
   stdio: 'inherit'

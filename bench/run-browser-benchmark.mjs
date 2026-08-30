@@ -19,10 +19,23 @@ const requestedBrowser = process.env.MATRIX_BROWSER
 const selectedBrowsers = requestedBrowser
   ? [[requestedBrowser, browserTypes[requestedBrowser]]]
   : Object.entries(browserTypes)
+const fixtureFlagIndex = process.argv.indexOf('--fixture')
+const requestedFixture = process.env.MATRIX_BENCHMARK_FIXTURE
+  ?? (fixtureFlagIndex >= 0 ? process.argv[fixtureFlagIndex + 1] : undefined)
+const fixtures = requestedFixture
+  ? [requestedFixture.replace(/^\/+/, '')]
+  : ['bench/dom.browser.html', 'bench/extended.browser.html']
 const check = process.argv.includes('--check')
 
 if (selectedBrowsers.some(([, browserType]) => !browserType)) {
   throw new Error(`Unknown browser "${requestedBrowser}". Use one of: ${Object.keys(browserTypes).join(', ')}${suggestClosest(requestedBrowser, Object.keys(browserTypes))}`)
+}
+
+for (const fixture of fixtures) {
+  const file = resolve(root, fixture)
+  if (!file.startsWith(`${root}${sep}`)) {
+    throw new Error(`Benchmark fixture must be inside the repository: ${fixture}`)
+  }
 }
 
 const server = createServer(async (request, response) => {
@@ -48,40 +61,49 @@ const { port } = server.address()
 
 function checkMeasurements(measurements) {
   return measurements
-    .filter(({ name, milliseconds }) => milliseconds > performanceBudgets.browser[name])
+    .filter(({ name, milliseconds }) => {
+      const budget = performanceBudgets.browser[name]
+      return budget !== undefined && milliseconds > budget
+    })
     .map(({ name, milliseconds }) => `${name} ${milliseconds}ms > ${performanceBudgets.browser[name]}ms`)
 }
 
 try {
   for (const [browserName, browserType] of selectedBrowsers) {
     const browser = await browserType.launch()
-    const page = await browser.newPage()
-    const failures = []
-
-    page.on('console', message => {
-      if (message.type() === 'error') {
-        failures.push(`${browserName} console: ${message.text()}`)
-      }
-    })
-    page.on('pageerror', error => {
-      failures.push(`${browserName} pageerror: ${error.stack || error.message}`)
-    })
-
     try {
-      await page.goto(`http://127.0.0.1:${port}/bench/dom.browser.html`)
-      await page.waitForFunction(() => window.__MATRIX_BENCHMARK_RESULT__, null, { timeout: 30000 })
+      for (const fixture of fixtures) {
+        const page = await browser.newPage()
+        const failures = []
 
-      const result = await page.evaluate(() => window.__MATRIX_BENCHMARK_RESULT__)
-      if (failures.length > 0) {
-        throw new Error(failures.join('\n'))
+        page.on('console', message => {
+          if (message.type() === 'error') {
+            failures.push(`${browserName} ${fixture} console: ${message.text()}`)
+          }
+        })
+        page.on('pageerror', error => {
+          failures.push(`${browserName} ${fixture} pageerror: ${error.stack || error.message}`)
+        })
+
+        try {
+          await page.goto(`http://127.0.0.1:${port}/${fixture}`)
+          await page.waitForFunction(() => window.__MATRIX_BENCHMARK_RESULT__, null, { timeout: 30000 })
+
+          const result = await page.evaluate(() => window.__MATRIX_BENCHMARK_RESULT__)
+          if (failures.length > 0) {
+            throw new Error(failures.join('\n'))
+          }
+
+          const budgetFailures = check ? checkMeasurements(result.measurements) : []
+          if (budgetFailures.length > 0) {
+            throw new Error(`DOM performance budget exceeded: ${budgetFailures.join('; ')}`)
+          }
+
+          console.log(JSON.stringify({ browser: browserName, fixture, ...result }, null, 2))
+        } finally {
+          await page.close()
+        }
       }
-
-      const budgetFailures = check ? checkMeasurements(result.measurements) : []
-      if (budgetFailures.length > 0) {
-        throw new Error(`DOM performance budget exceeded: ${budgetFailures.join('; ')}`)
-      }
-
-      console.log(JSON.stringify({ browser: browserName, ...result }, null, 2))
     } finally {
       await browser.close()
     }

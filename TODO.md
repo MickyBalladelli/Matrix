@@ -126,14 +126,14 @@ Published on npm: @mickyballadelli/matrix@next
 ## Performance: Benchmarks and Regression Prevention
 
 ### Benchmark suite
-- [ ] Add memory baseline for idle application
-- [ ] Add memory baseline for 1000 signals
-- [ ] Add memory baseline for 1000 effects
-- [ ] Benchmark large keyed list (10k items) mount, update, unmount
-- [ ] Benchmark CSS variable update performance (100 variables)
-- [ ] Benchmark rapid signal updates with many subscribers
-- [ ] Create performance comparison against React, Vue, Preact
-- [ ] Document performance profiles by use case
+- [x] Add memory baseline for idle application
+- [x] Add memory baseline for 1000 signals
+- [x] Add memory baseline for 1000 effects
+- [x] Benchmark large keyed list (10k items) mount, update, unmount
+- [x] Benchmark CSS variable update performance (100 variables)
+- [x] Benchmark rapid signal updates with many subscribers
+- [x] Create performance comparison against React, Vue, Preact
+- [x] Document performance profiles by use case
 
 ### Regression prevention
 - [ ] Lock size budgets with 2% tolerance before release

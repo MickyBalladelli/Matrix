@@ -36,13 +36,35 @@ const subscribers = [1, 10, 100, 1000].map(size => {
   }
 })
 
+const rapidSource = signal(0)
+let rapidReads = 0
+const rapidStops = Array.from({ length: 100 }, () => effect(() => {
+  rapidSource.value
+  rapidReads += 1
+}))
+const rapidStart = performance.now()
+for (let index = 0; index < 1000; index += 1) {
+  rapidSource.value = index
+}
+const rapidElapsed = performance.now() - rapidStart
+for (const unsubscribe of rapidStops) {
+  unsubscribe()
+}
+rapidSource.dispose()
+
 const result = {
   iterations,
   reads,
   milliseconds: Number(elapsed.toFixed(2)),
   heapDeltaBytes: memoryAfter - memoryBefore,
   updatesPerSecond: Math.round(iterations / (elapsed / 1000)),
-  subscribers
+  subscribers,
+  rapidSignalUpdates: {
+    updates: 1000,
+    subscribers: 100,
+    reads: rapidReads,
+    milliseconds: Number(rapidElapsed.toFixed(3))
+  }
 }
 
 console.log(JSON.stringify(result, null, 2))

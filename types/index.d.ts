@@ -1,5 +1,5 @@
 export interface Signal<T> {
-  value: T
+  readonly value: T
   readonly kind: 'signal'
   readonly name: string
   get(): T
@@ -70,11 +70,11 @@ export function render(value: unknown, container: Element | DocumentFragment, be
 export function delegate(element: Element, event: string, selector: string, handler: (event: Event) => void, options?: AddEventListenerOptions): () => void
 
 export interface ComponentResult {
-  readonly props: Record<string, unknown>
+  readonly props: Readonly<Record<string, unknown>>
   readonly key?: string | number
 }
 
-export function component<Props extends Record<string, unknown>>(
+export function component<Props extends object>(
   render: (props: Readonly<Props>) => unknown,
   props?: Props
 ): ComponentResult
@@ -82,7 +82,11 @@ export function onMount(callback: (root: Node | null) => void | (() => void)): v
 export function onUnmount(cleanup: () => void): () => void
 export function provide<T>(key: unknown, value: T): T
 export function inject<T>(key: unknown, fallback?: T): T | undefined
-export function errorBoundary(render: (props: Readonly<Record<string, unknown>>) => unknown, fallback: unknown, props?: Record<string, unknown>): ComponentResult
+export function errorBoundary<Props extends object = Record<string, never>>(
+  render: (props: Readonly<Props>) => unknown,
+  fallback: unknown,
+  props?: Props
+): ComponentResult
 
 export interface StyleDefinition {
   readonly id: string

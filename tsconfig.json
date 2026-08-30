@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": true,
+    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@mickyballadelli/matrix": ["types/index.d.ts"],
+      "@mickyballadelli/matrix/*": ["types/*.d.ts"]
+    },
+    "strict": true,
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@mickyballadelli/matrix"
+  },
+  "include": ["types/**/*.d.ts", "test/types/**/*.ts", "test/types/**/*.tsx"]
+}

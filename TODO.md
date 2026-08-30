@@ -27,12 +27,12 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Add performance regression testing
 
 ### Type safety
-- [ ] Run TypeScript strict mode on entire codebase
-- [ ] Add strict type tests for component props mutation prevention
-- [ ] Verify JSX IntrinsicElements types catch misspelled attributes
-- [ ] Add type tests for reactive prop updates
-- [ ] Test that invalid event names cause type errors
-- [ ] Verify readonly signal types prevent direct mutation
+- [x] Run TypeScript strict mode on entire codebase
+- [x] Add strict type tests for component props mutation prevention
+- [x] Verify JSX IntrinsicElements types catch misspelled attributes
+- [x] Add type tests for reactive prop updates
+- [x] Test that invalid event names cause type errors
+- [x] Verify readonly signal types prevent direct mutation
 
 ## Documentation: Completeness and Clarity
 

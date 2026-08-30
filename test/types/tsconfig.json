@@ -1,17 +1,4 @@
 {
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "@mickyballadelli/matrix",
-    "baseUrl": "../..",
-    "paths": {
-      "@mickyballadelli/matrix": ["types/index.d.ts"],
-      "@mickyballadelli/matrix/*": ["types/*.d.ts"]
-    },
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "noEmit": true,
-    "strict": true,
-    "target": "ES2022"
-  },
-  "include": ["./matrix.tsx"]
+  "extends": "../../tsconfig.json",
+  "include": ["./matrix.tsx", "./strict.tsx"]
 }

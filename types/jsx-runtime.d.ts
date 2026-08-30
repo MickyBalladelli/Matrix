@@ -10,8 +10,15 @@ type EventAttributes = {
 } & {
   [Name in keyof GlobalEventHandlersEventMap as `on${Capitalize<Name & string>}${'Capture' | 'Once' | 'Passive' | 'Prevent' | 'Stop'}`]?: (event: GlobalEventHandlersEventMap[Name]) => void
 }
+type ReservedElementAttribute = 'children' | 'class' | 'className' | 'style' | 'key' | `on${string}` | `data-${string}` | `aria-${string}` | `use:${string}`
 type ElementProperties<ElementType> = {
-  [Name in keyof ElementType as ElementType[Name] extends (...args: never[]) => unknown ? never : Name]?: MatrixValue<ElementType[Name]>
+  [Name in keyof ElementType as Name extends string
+    ? Name extends ReservedElementAttribute
+      ? never
+      : ElementType[Name] extends (...args: never[]) => unknown
+        ? never
+        : Name
+    : never]?: MatrixValue<ElementType[Name]>
 }
 
 export type IntrinsicElementAttributes<ElementType extends Element> = ElementProperties<ElementType> & EventAttributes & DataAttributes & AriaAttributes & {

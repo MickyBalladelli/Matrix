@@ -4,21 +4,23 @@ Review date: 2026-08-30
 Current version: 0.1.0-alpha.1
 Published on npm: @mickyballadelli/matrix@next
 
+Audit note (2026-08-30): Done items were re-checked against the repo. Overclaimed `[x]` entries were reopened with a short gap note.
+
 ## Foundation: Stability and Testing
 
 ### Core runtime stability
 - [x] Add comprehensive error boundary tests for failures after partial DOM insertion
-- [x] Add error boundary tests for failures inside lifecycle callbacks
+- [ ] Add error boundary tests for failures inside lifecycle callbacks (only `onMount` today)
 - [x] Test error propagation through component trees
 - [x] Add leak detection tests for repeated mount/unmount cycles (1000x+ unmounts)
 - [x] Add leak detection for keyed list replacements
-- [x] Add leak detection for forms with debounce cleanup
-- [x] Add leak detection for router start/stop cycles
-- [x] Add leak detection for scoped CSS and theme changes
-- [x] Add leak detection for aborted resources (resource cleanup)
-- [x] Verify effect cleanup runs in correct order during unmount
+- [ ] Add leak detection for forms with debounce cleanup (timer cancel only, not a leak suite)
+- [ ] Add leak detection for router start/stop cycles (cycles run; no listener/heap assert)
+- [ ] Add leak detection for scoped CSS and theme changes (variable flips only)
+- [ ] Add leak detection for aborted resources (resource cleanup) (single abort, not cycles)
+- [ ] Verify effect cleanup runs in correct order during unmount (scope dispose only)
 - [x] Test concurrent signal updates and batch behavior under stress
-- [x] Test very large keyed lists (10k+ items) for performance and memory
+- [ ] Test very large keyed lists (10k+ items) for performance and memory (reorder works; no memory assert)
 
 ### Browser test automation
 - [x] Add browser tests (Chromium, Firefox, WebKit)
@@ -27,7 +29,7 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Add performance regression testing
 
 ### Type safety
-- [x] Run TypeScript strict mode on entire codebase
+- [ ] Run TypeScript strict mode on entire codebase (`src/**` is JS; only types + fixtures are checked)
 - [x] Add strict type tests for component props mutation prevention
 - [x] Verify JSX IntrinsicElements types catch misspelled attributes
 - [x] Add type tests for reactive prop updates
@@ -68,10 +70,10 @@ Published on npm: @mickyballadelli/matrix@next
 
 ### Error messages
 - [x] Improve error message for invalid component render function
-- [x] Add stack trace that points to user component, not internals
+- [ ] Add stack trace that points to user component, not internals (named components only; stacks still include internals)
 - [x] Add "Did you mean?" suggestions for common typos
 - [x] Improve "Multiple runtimes loaded" warning with debug info
-- [x] Add warnings for stale closures in effects (reading past scope)
+- [ ] Add warnings for stale closures in effects (reading past scope) (heuristic: Promise return / dep churn only)
 - [x] Add warnings for effect dependency changes
 - [x] Warn when component returns non-template, non-component value
 - [x] Warn about duplicate keys before runtime error
@@ -87,12 +89,12 @@ Published on npm: @mickyballadelli/matrix@next
 
 ### DevTools enhancements
 - [x] Create browser DevTools extension (Chrome/Firefox/Edge)
-- [x] Add component tree inspector in DevTools, I want to see which component is in which file.
+- [ ] Add component tree inspector in DevTools, I want to see which component is in which file. (stack dump in JSON, no file:line tree UI)
 - [x] Add signal/computed inspection panel
-- [x] Add effect dependency visualizer
+- [ ] Add effect dependency visualizer (JSON edges only, no graph UI)
 - [x] Add router state inspector
 - [x] Add performance timeline recording
-- [x] Create VS Code debugging integration for Matrix components
+- [ ] Create VS Code debugging integration for Matrix components (snapshot Output channel only; no DAP/breakpoints)
 
 ## Testing: Comprehensive Coverage
 
@@ -132,19 +134,19 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Benchmark large keyed list (10k items) mount, update, unmount
 - [x] Benchmark CSS variable update performance (100 variables)
 - [x] Benchmark rapid signal updates with many subscribers
-- [x] Create performance comparison against React, Vue, Preact
+- [ ] Create performance comparison against React, Vue, Preact (script skips them unless those packages are installed)
 - [x] Document performance profiles by use case
 
 ### Regression prevention
 - [x] Lock size budgets with 2% tolerance before release
-- [x] Add performance regression history tracking
-- [x] Benchmark before and after every optimization attempt
-- [x] Keep detailed performance notes for each version
-- [x] Create public performance dashboard or tracking
+- [ ] Add performance regression history tracking (`performance-history.json` has empty `runs`)
+- [ ] Benchmark before and after every optimization attempt (protocol exists; no recorded pairs)
+- [ ] Keep detailed performance notes for each version (placeholder only)
+- [ ] Create public performance dashboard or tracking (local `bench/dashboard.html` only; not published)
 
 ### Optimization opportunities
 - [x] Consider lazy compilation of templates on first use
-- [x] Evaluate event delegation efficiency for large DOMs
+- [ ] Evaluate event delegation efficiency for large DOMs (`delegate()` exists; templates still per-element listeners)
 - [x] Profile CSS scoping implementation for bottlenecks
 - [x] Analyze router matching performance with large route tables
 - [x] Consider worker offloading for CPU-heavy operations
@@ -153,10 +155,10 @@ Published on npm: @mickyballadelli/matrix@next
 ## Platform Support: Verification and Documentation
 
 ### Browser compatibility
-- [x] Test on Safari 15+
-- [x] Test on Chrome 90+, Firefox 88+, Edge 90+
-- [x] Test on iOS Safari
-- [x] Test on mobile Chrome (Android)
+- [ ] Test on Safari 15+ (Playwright WebKit only, not Safari 15 specifically)
+- [ ] Test on Chrome 90+, Firefox 88+, Edge 90+ (current browsers; Edge is optional channel)
+- [ ] Test on iOS Safari (Playwright iPhone device emulation)
+- [ ] Test on mobile Chrome (Android) (Playwright Pixel device emulation)
 - [x] Verify touch event handling
 - [x] Test Dark Mode support
 - [x] Test RTL language rendering (with `dir="rtl"`)
@@ -164,29 +166,29 @@ Published on npm: @mickyballadelli/matrix@next
 
 ### Node.js compatibility
 - [x] Verify signal/computed work in Node (no DOM)
-- [x] Test Node 18.x through current LTS
+- [ ] Test Node 18.x through current LTS (current Node unless `MATRIX_NODE_BINARIES` is set)
 - [x] Verify errors on Node for browser-only APIs
-- [x] Test in Cloudflare Workers environment
-- [x] Test in Bun runtime
-- [x] Test in Deno compatibility mode
+- [ ] Test in Cloudflare Workers environment (fixture + opt-in script; not in release gate)
+- [ ] Test in Bun runtime (opt-in fixture; not in release gate)
+- [ ] Test in Deno compatibility mode (opt-in fixture; not in release gate)
 
 ### Build tool integration
 - [x] Create Rollup plugin example for tree-shaking
 - [x] Verify esbuild handles JSX properly
-- [x] Test Webpack 5 module federation
-- [x] Verify Next.js App Router compatibility
-- [x] Test Astro integration patterns
-- [x] Test Remix integration patterns
+- [ ] Test Webpack 5 module federation (example host config only; not executed)
+- [ ] Verify Next.js App Router compatibility (example files only; not executed)
+- [ ] Test Astro integration patterns (example files only; not executed)
+- [ ] Test Remix integration patterns (example files only; not executed)
 
 ## Security: Hardening and Best Practices
 
 ### Security testing
-- [x] Fuzz XSS prevention with random HTML/SVG/XML
+- [ ] Fuzz XSS prevention with random HTML/SVG/XML (64 seeded payloads, not a fuzzer)
 - [x] Test all escape pathways with malicious input
 - [x] Verify CSS scoping prevents style leakage attacks
 - [x] Test router path handling with malicious URLs
 - [x] Verify form binding doesn't expose sensitive data
-- [x] Test plugin system for sandbox breaks
+- [ ] Test plugin system for sandbox breaks (no sandbox; unknown-point rejection only)
 - [x] Document SECURITY.md with security considerations
 - [x] Add security regression test suite
 
@@ -207,8 +209,8 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Create "E-commerce" example with filters and sorting
 - [x] Create "SPA" example showcasing full Matrix capabilities
 - [x] Create "Server Integration" example with real API
-- [x] Each example with Vite, TypeScript, complete tests
-- [x] Add example template to create-matrix-app
+- [ ] Each example with Vite, TypeScript, complete tests (Vite+TS yes; tests are one shared fixture, not per-app)
+- [ ] Add example template to create-matrix-app (toy JSX blog stub, not the official example)
 
 ### Extension patterns
 - [x] Example: Custom form input component with validation

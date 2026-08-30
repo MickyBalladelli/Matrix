@@ -181,14 +181,14 @@ Published on npm: @mickyballadelli/matrix@next
 ## Security: Hardening and Best Practices
 
 ### Security testing
-- [ ] Fuzz XSS prevention with random HTML/SVG/XML
-- [ ] Test all escape pathways with malicious input
-- [ ] Verify CSS scoping prevents style leakage attacks
-- [ ] Test router path handling with malicious URLs
-- [ ] Verify form binding doesn't expose sensitive data
-- [ ] Test plugin system for sandbox breaks
-- [ ] Document SECURITY.md with security considerations
-- [ ] Add security regression test suite
+- [x] Fuzz XSS prevention with random HTML/SVG/XML
+- [x] Test all escape pathways with malicious input
+- [x] Verify CSS scoping prevents style leakage attacks
+- [x] Test router path handling with malicious URLs
+- [x] Verify form binding doesn't expose sensitive data
+- [x] Test plugin system for sandbox breaks
+- [x] Document SECURITY.md with security considerations
+- [x] Add security regression test suite
 
 ### Input handling
 - [ ] Test HTML entity escaping in all contexts

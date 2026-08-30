@@ -6,6 +6,7 @@
 - `examples.browser.html` loads `examples.browser.js` and checks the Shopping Cart, Notes, Dashboard, and Chat applications through their adapter boundaries.
 - `edge-cases.browser.html` loads `edge-cases.browser.js` and checks cleanup-time updates, lifecycle navigation, async form unmounts, style timing, long text, and rapid mount cycles.
 - `browser-compatibility.browser.html` loads `browser-compatibility.browser.js` and checks ESM/runtime features, touch events, dark-mode media queries, and RTL rendering.
+- `security.browser.html` loads `security.browser.js` and checks deterministic XSS payloads, URL guards, CSS isolation, router boundaries, form privacy, and plugin cleanup.
 - `node-compatibility.test.js` checks the DOM-free reactive core and clear browser-only API errors in Node.
 - `runtime-compatibility/basic.mjs` is a portable smoke fixture for Node, Bun, and Deno. `runtime-compatibility/cloudflare-worker.mjs` is the module Worker fixture.
 - `npm run test:types` checks all public declarations and strict JSX fixtures, including read-only props, reactive props, intrinsic attributes and event names.
@@ -15,8 +16,8 @@
 Pass `--browser chromium`, `--browser firefox` or `--browser webkit` to run one engine. Compatibility runs also accept `--device`, `--channel`, and `--color-scheme` for iOS/Android emulation, Edge, and dark-mode checks.
 
 Use the package scripts `test:browser:ios`, `test:browser:android`,
-`test:browser:edge`, and `test:browser:dark` for the standard compatibility
-profiles.
+`test:browser:edge`, `test:browser:dark`, and `test:browser:security` for the
+standard compatibility and security profiles.
 
 Use `npm run test:node:compat` for Node 18+ and set
 `MATRIX_NODE_BINARIES` to a comma-separated list of installed Node binaries for

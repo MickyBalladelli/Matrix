@@ -20,6 +20,22 @@ function normalizeBase(base) {
   return value ? `/${value}` : ''
 }
 
+function decodeRouteParam(value) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    throw new URIError('Router route parameter contains malformed percent-encoding')
+  }
+}
+
+function decodeHashTarget(value) {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return null
+  }
+}
+
 function compileRoute(pattern) {
   const keys = []
   const source = normalizePath(pattern)
@@ -82,7 +98,7 @@ function matchRoute(routeIndex, path) {
 
     const params = {}
     route.matcher.keys.forEach((key, index) => {
-      params[key] = decodeURIComponent(match[index + 1] || '')
+      params[key] = decodeRouteParam(match[index + 1] || '')
     })
 
     return { ...route, params }
@@ -389,8 +405,10 @@ function createRouterState(routeDefinitions, options) {
     onPopState()
 
     if (url.hash) {
-      const targetId = decodeURIComponent(url.hash.slice(1))
-      document.getElementById(targetId)?.scrollIntoView()
+      const targetId = decodeHashTarget(url.hash.slice(1))
+      if (targetId !== null) {
+        document.getElementById(targetId)?.scrollIntoView()
+      }
     } else if (navigationOptions.scroll !== false) {
       window.scrollTo?.({ top: 0, left: 0 })
     }

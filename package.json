@@ -52,6 +52,7 @@
     "test": "node --test test/*.test.js",
     "test:browser": "node test/run-browser-tests.mjs",
     "test:browser:compat": "node test/run-browser-tests.mjs --fixture test/browser-compatibility.browser.html",
+    "test:browser:security": "node test/run-browser-tests.mjs --fixture test/security.browser.html",
     "test:browser:dark": "node test/run-browser-tests.mjs --color-scheme dark --fixture test/browser-compatibility.browser.html",
     "test:browser:ios": "node test/run-browser-tests.mjs --browser webkit --device \"iPhone 13\" --fixture test/browser-compatibility.browser.html",
     "test:browser:android": "node test/run-browser-tests.mjs --browser chromium --device \"Pixel 5\" --fixture test/browser-compatibility.browser.html",

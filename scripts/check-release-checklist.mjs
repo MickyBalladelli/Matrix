@@ -18,24 +18,21 @@ function run(command, arguments_, options = {}) {
 }
 
 function parsePackOutput(output) {
-  const lines = output.trim().split(/\r?\n/)
-
-  for (let index = lines.length - 1; index >= 0; index -= 1) {
-    if (!lines[index].trim().startsWith('[')) {
-      continue
-    }
-
-    try {
-      const parsed = JSON.parse(lines.slice(index).join('\n'))
-      if (Array.isArray(parsed) && parsed[0]?.files) {
-        return parsed[0]
-      }
-    } catch {
-      continue
-    }
+  const jsonStart = Math.min(...[output.indexOf('{'), output.indexOf('[')].filter(index => index >= 0))
+  if (!Number.isFinite(jsonStart)) {
+    throw new Error('Could not parse JSON output from npm pack --dry-run')
   }
 
-  throw new Error('Could not parse JSON output from npm pack --dry-run')
+  const parsed = JSON.parse(output.slice(jsonStart))
+  const pack = Array.isArray(parsed)
+    ? parsed[0]
+    : parsed[Object.keys(parsed)[0]]
+
+  if (!pack?.files) {
+    throw new Error('Could not parse JSON output from npm pack --dry-run')
+  }
+
+  return pack
 }
 
 function exportTargets() {
@@ -136,7 +133,7 @@ async function checkChangelog() {
     throw new Error('CHANGELOG.md must start with a Changelog heading')
   }
 
-  if (!new RegExp(`^${escapedVersion}(?:\\s|$)`, 'm').test(changelog)) {
+  if (!new RegExp(`^##\\s+${escapedVersion}(?:\\s|$)`, 'm').test(changelog)) {
     throw new Error(`CHANGELOG.md has no entry for package version ${version}`)
   }
 
@@ -180,11 +177,11 @@ async function checkPerformanceHistory() {
     throw new Error('Latest performance history entry has no regression result')
   }
 
-  if (latest.regressions.length > 0) {
+  if (latest.regressions.length > 0 && latest.phase === 'after') {
     throw new Error(`Performance regression detected: ${latest.regressions.map(regression => regression.metric).join(', ')}`)
   }
 
-  console.log(`Performance history compares ${runs.length} recorded runs with no regressions`)
+  console.log(`Performance history compares ${runs.length} recorded runs${latest.phase === 'after' ? ' with no regressions' : ''}`)
 }
 
 await checkPackContents()

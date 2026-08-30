@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0 — 2026-08-30
+
+- Promote Matrix to the first stable release as `@mickyballadelli/matrix`.
+- Keep the public API, package exports, and Vite JSX guidance from the alpha line.
+- Fix boolean text bindings so `true` and `false` render as text instead of empty content.
+- Default `createDevtools()` snapshots to redact sensitive values.
+- Require `cssVariables` in the security browser suite and harden release checklist packing against npm JSON shapes.
+- Size (minified / gzip / Brotli): root 55113 / 18992 / 16950 bytes.
+
 ## 0.1.0-alpha.1 — 2026-08-29
 
 - Warn when multiple Matrix runtimes are loaded in the same global scope.

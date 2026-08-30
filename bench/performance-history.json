@@ -1,4 +1,654 @@
 {
   "schemaVersion": 1,
-  "runs": []
+  "runs": [
+    {
+      "id": "1788093118473-1.0.0-baseline",
+      "label": "1.0.0-baseline",
+      "phase": "baseline",
+      "change": null,
+      "recordedAt": "2026-08-30T12:31:58.473Z",
+      "environment": {
+        "node": "v22.23.1",
+        "platform": "darwin",
+        "arch": "arm64",
+        "browsers": [
+          "chromium"
+        ]
+      },
+      "reactivity": {
+        "iterations": 100000,
+        "reads": 100000,
+        "milliseconds": 37.22,
+        "heapDeltaBytes": 1055728,
+        "updatesPerSecond": 2686382,
+        "subscribers": [
+          {
+            "size": 1,
+            "milliseconds": 0.017
+          },
+          {
+            "size": 10,
+            "milliseconds": 0.021
+          },
+          {
+            "size": 100,
+            "milliseconds": 0.073
+          },
+          {
+            "size": 1000,
+            "milliseconds": 1.287
+          }
+        ],
+        "rapidSignalUpdates": {
+          "updates": 1000,
+          "subscribers": 100,
+          "reads": 100000,
+          "milliseconds": 31.235
+        },
+        "batching": {
+          "updates": 1000,
+          "writes": 2000,
+          "effectRuns": 2,
+          "computedRuns": 2,
+          "milliseconds": 0.712,
+          "coalesced": true
+        }
+      },
+      "memory": {
+        "idleHeapUsedBytes": 3943992,
+        "signals1000": {
+          "allocatedBytes": 2108016,
+          "retainedBytes": 17232
+        },
+        "effects1000": {
+          "allocatedBytes": 1146512,
+          "retainedBytes": 40656
+        },
+        "gcAvailable": true,
+        "node": "v22.23.1"
+      },
+      "browser": [
+        {
+          "browser": "chromium",
+          "fixture": "bench/dom.browser.html",
+          "measurements": [
+            {
+              "name": "mount initial",
+              "milliseconds": 2.8
+            },
+            {
+              "name": "single signal update",
+              "milliseconds": 0.1
+            },
+            {
+              "name": "keyed list mount 1000",
+              "milliseconds": 2.1
+            },
+            {
+              "name": "keyed list reorder 1000",
+              "milliseconds": 1.3
+            },
+            {
+              "name": "full replacement reference",
+              "milliseconds": 0.6
+            }
+          ],
+          "domOperations": {
+            "singleSignalUpdate": 0,
+            "keyedReorder": 0
+          },
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+        },
+        {
+          "browser": "chromium",
+          "fixture": "bench/extended.browser.html",
+          "measurements": [
+            {
+              "name": "keyed list mount 10000",
+              "milliseconds": 11.9
+            },
+            {
+              "name": "keyed list update 10000",
+              "milliseconds": 8.7
+            },
+            {
+              "name": "keyed list unmount 10000",
+              "milliseconds": 1.6
+            },
+            {
+              "name": "css variables update 100",
+              "milliseconds": 7
+            },
+            {
+              "name": "rapid signal updates 100 subscribers",
+              "milliseconds": 29.8
+            }
+          ],
+          "memory": {
+            "idle": {
+              "usedJSHeapSize": 10000000,
+              "totalJSHeapSize": 10000000,
+              "jsHeapSizeLimit": 3760000000
+            },
+            "signals1000": {
+              "before": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "allocated": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "afterDispose": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              }
+            },
+            "effects1000": {
+              "before": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "allocated": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "afterDispose": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              }
+            }
+          },
+          "rapidReads": 100100,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+        },
+        {
+          "browser": "chromium",
+          "fixture": "bench/optimization.browser.html",
+          "measurements": [
+            {
+              "name": "lazy template reuse 100",
+              "milliseconds": 3.1
+            },
+            {
+              "name": "delegated events across 5000 nodes",
+              "milliseconds": 11.8
+            },
+            {
+              "name": "static CSS definition reuse 1000",
+              "milliseconds": 0.7
+            },
+            {
+              "name": "router match across 1000 routes",
+              "milliseconds": 0.8
+            },
+            {
+              "name": "signal batch 2000 writes",
+              "milliseconds": 0.5
+            },
+            {
+              "name": "worker offload sum",
+              "milliseconds": 12.9
+            }
+          ],
+          "results": {
+            "delegatedClicks": 5000,
+            "styleCacheEntries": 1,
+            "routeMatch": "/optimization-999",
+            "batchedRuns": 2,
+            "workerSum": 499500
+          },
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+        }
+      ],
+      "size": {
+        "root": {
+          "minifiedBytes": 55113,
+          "gzipBytes": 18992,
+          "brotliBytes": 16950,
+          "brotliBudget": 17000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 17340
+        },
+        "reactivity": {
+          "minifiedBytes": 8967,
+          "gzipBytes": 3503,
+          "brotliBytes": 3164,
+          "brotliBudget": 4000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 4080
+        },
+        "components": {
+          "minifiedBytes": 4003,
+          "gzipBytes": 1707,
+          "brotliBytes": 1498,
+          "brotliBudget": 2000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 2040
+        },
+        "dom": {
+          "minifiedBytes": 25007,
+          "gzipBytes": 9222,
+          "brotliBytes": 8277,
+          "brotliBudget": 11000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 11220
+        },
+        "jsx-runtime": {
+          "minifiedBytes": 5477,
+          "gzipBytes": 2522,
+          "brotliBytes": 2230,
+          "brotliBudget": 12000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 12240
+        },
+        "styles": {
+          "minifiedBytes": 9587,
+          "gzipBytes": 4126,
+          "brotliBytes": 3666,
+          "brotliBudget": 5000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 5100
+        },
+        "utils": {
+          "minifiedBytes": 28645,
+          "gzipBytes": 9999,
+          "brotliBytes": 8971,
+          "brotliBudget": 9000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 9180
+        },
+        "plugins": {
+          "minifiedBytes": 1240,
+          "gzipBytes": 665,
+          "brotliBytes": 585,
+          "brotliBudget": 1500,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 1530
+        }
+      },
+      "comparison": {
+        "protocol": "single button mount, 100 synchronous state updates, and unmount",
+        "iterations": 100,
+        "matrixVersion": "1.0.0",
+        "results": [
+          {
+            "framework": "Matrix",
+            "mountMilliseconds": 1.9,
+            "updateMilliseconds": 0.5,
+            "unmountMilliseconds": 0.2,
+            "finalText": ""
+          }
+        ],
+        "skipped": [
+          {
+            "name": "React",
+            "reason": "Install react to include it"
+          },
+          {
+            "name": "Vue",
+            "reason": "Install vue to include it"
+          },
+          {
+            "name": "Preact",
+            "reason": "Install preact to include it"
+          }
+        ],
+        "note": "Compare repeated runs on the same machine and browser. This is directional data, not a cross-machine score."
+      },
+      "regressions": []
+    },
+    {
+      "id": "1788093188244-1.0.0",
+      "label": "1.0.0",
+      "phase": "baseline",
+      "change": null,
+      "recordedAt": "2026-08-30T12:33:08.244Z",
+      "environment": {
+        "node": "v22.23.1",
+        "platform": "darwin",
+        "arch": "arm64",
+        "browsers": [
+          "chromium"
+        ]
+      },
+      "reactivity": {
+        "iterations": 100000,
+        "reads": 100000,
+        "milliseconds": 36.76,
+        "heapDeltaBytes": 1174728,
+        "updatesPerSecond": 2720065,
+        "subscribers": [
+          {
+            "size": 1,
+            "milliseconds": 0.016
+          },
+          {
+            "size": 10,
+            "milliseconds": 0.018
+          },
+          {
+            "size": 100,
+            "milliseconds": 0.069
+          },
+          {
+            "size": 1000,
+            "milliseconds": 1.546
+          }
+        ],
+        "rapidSignalUpdates": {
+          "updates": 1000,
+          "subscribers": 100,
+          "reads": 100000,
+          "milliseconds": 29.461
+        },
+        "batching": {
+          "updates": 1000,
+          "writes": 2000,
+          "effectRuns": 2,
+          "computedRuns": 2,
+          "milliseconds": 0.916,
+          "coalesced": true
+        }
+      },
+      "memory": {
+        "idleHeapUsedBytes": 3948944,
+        "signals1000": {
+          "allocatedBytes": 2107952,
+          "retainedBytes": 17232
+        },
+        "effects1000": {
+          "allocatedBytes": 1146512,
+          "retainedBytes": 40656
+        },
+        "gcAvailable": true,
+        "node": "v22.23.1"
+      },
+      "browser": [
+        {
+          "browser": "chromium",
+          "fixture": "bench/dom.browser.html",
+          "measurements": [
+            {
+              "name": "mount initial",
+              "milliseconds": 2.9
+            },
+            {
+              "name": "single signal update",
+              "milliseconds": 0.2
+            },
+            {
+              "name": "keyed list mount 1000",
+              "milliseconds": 2.6
+            },
+            {
+              "name": "keyed list reorder 1000",
+              "milliseconds": 1.4
+            },
+            {
+              "name": "full replacement reference",
+              "milliseconds": 0.5
+            }
+          ],
+          "domOperations": {
+            "singleSignalUpdate": 0,
+            "keyedReorder": 0
+          },
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+        },
+        {
+          "browser": "chromium",
+          "fixture": "bench/extended.browser.html",
+          "measurements": [
+            {
+              "name": "keyed list mount 10000",
+              "milliseconds": 12.7
+            },
+            {
+              "name": "keyed list update 10000",
+              "milliseconds": 7.9
+            },
+            {
+              "name": "keyed list unmount 10000",
+              "milliseconds": 1.9
+            },
+            {
+              "name": "css variables update 100",
+              "milliseconds": 7
+            },
+            {
+              "name": "rapid signal updates 100 subscribers",
+              "milliseconds": 29.9
+            }
+          ],
+          "memory": {
+            "idle": {
+              "usedJSHeapSize": 10000000,
+              "totalJSHeapSize": 10000000,
+              "jsHeapSizeLimit": 3760000000
+            },
+            "signals1000": {
+              "before": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "allocated": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "afterDispose": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              }
+            },
+            "effects1000": {
+              "before": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "allocated": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              },
+              "afterDispose": {
+                "usedJSHeapSize": 10000000,
+                "totalJSHeapSize": 10000000,
+                "jsHeapSizeLimit": 3760000000
+              }
+            }
+          },
+          "rapidReads": 100100,
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+        },
+        {
+          "browser": "chromium",
+          "fixture": "bench/optimization.browser.html",
+          "measurements": [
+            {
+              "name": "lazy template reuse 100",
+              "milliseconds": 2.9
+            },
+            {
+              "name": "delegated events across 5000 nodes",
+              "milliseconds": 12
+            },
+            {
+              "name": "static CSS definition reuse 1000",
+              "milliseconds": 0.6
+            },
+            {
+              "name": "router match across 1000 routes",
+              "milliseconds": 0.6
+            },
+            {
+              "name": "signal batch 2000 writes",
+              "milliseconds": 0.5
+            },
+            {
+              "name": "worker offload sum",
+              "milliseconds": 13.2
+            }
+          ],
+          "results": {
+            "delegatedClicks": 5000,
+            "styleCacheEntries": 1,
+            "routeMatch": "/optimization-999",
+            "batchedRuns": 2,
+            "workerSum": 499500
+          },
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/151.0.7922.34 Safari/537.36"
+        }
+      ],
+      "size": {
+        "root": {
+          "minifiedBytes": 55113,
+          "gzipBytes": 18992,
+          "brotliBytes": 16950,
+          "brotliBudget": 17000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 17340
+        },
+        "reactivity": {
+          "minifiedBytes": 8967,
+          "gzipBytes": 3503,
+          "brotliBytes": 3164,
+          "brotliBudget": 4000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 4080
+        },
+        "components": {
+          "minifiedBytes": 4003,
+          "gzipBytes": 1707,
+          "brotliBytes": 1498,
+          "brotliBudget": 2000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 2040
+        },
+        "dom": {
+          "minifiedBytes": 25007,
+          "gzipBytes": 9222,
+          "brotliBytes": 8277,
+          "brotliBudget": 11000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 11220
+        },
+        "jsx-runtime": {
+          "minifiedBytes": 5477,
+          "gzipBytes": 2522,
+          "brotliBytes": 2230,
+          "brotliBudget": 12000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 12240
+        },
+        "styles": {
+          "minifiedBytes": 9587,
+          "gzipBytes": 4126,
+          "brotliBytes": 3666,
+          "brotliBudget": 5000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 5100
+        },
+        "utils": {
+          "minifiedBytes": 28645,
+          "gzipBytes": 9999,
+          "brotliBytes": 8971,
+          "brotliBudget": 9000,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 9180
+        },
+        "plugins": {
+          "minifiedBytes": 1240,
+          "gzipBytes": 665,
+          "brotliBytes": 585,
+          "brotliBudget": 1500,
+          "budgetTolerance": 0.02,
+          "brotliLimit": 1530
+        }
+      },
+      "comparison": {
+        "protocol": "single button mount, 100 synchronous state updates, and unmount",
+        "iterations": 100,
+        "matrixVersion": "1.0.0",
+        "results": [
+          {
+            "framework": "Matrix",
+            "mountMilliseconds": 1.7,
+            "updateMilliseconds": 0.6,
+            "unmountMilliseconds": 0.2,
+            "finalText": ""
+          }
+        ],
+        "skipped": [
+          {
+            "name": "React",
+            "reason": "Install react to include it"
+          },
+          {
+            "name": "Vue",
+            "reason": "Install vue to include it"
+          },
+          {
+            "name": "Preact",
+            "reason": "Install preact to include it"
+          }
+        ],
+        "note": "Compare repeated runs on the same machine and browser. This is directional data, not a cross-machine score."
+      },
+      "regressions": [
+        {
+          "metric": "browser.chromium.bench/dom.browser.html.single signal update",
+          "before": 0.1,
+          "after": 0.2,
+          "changePercent": 100,
+          "tolerancePercent": 5
+        },
+        {
+          "metric": "browser.chromium.bench/dom.browser.html.keyed list mount 1000",
+          "before": 2.1,
+          "after": 2.6,
+          "changePercent": 23.81,
+          "tolerancePercent": 5
+        },
+        {
+          "metric": "browser.chromium.bench/dom.browser.html.keyed list reorder 1000",
+          "before": 1.3,
+          "after": 1.4,
+          "changePercent": 7.69,
+          "tolerancePercent": 5
+        },
+        {
+          "metric": "browser.chromium.bench/extended.browser.html.keyed list mount 10000",
+          "before": 11.9,
+          "after": 12.7,
+          "changePercent": 6.72,
+          "tolerancePercent": 5
+        },
+        {
+          "metric": "browser.chromium.bench/extended.browser.html.keyed list unmount 10000",
+          "before": 1.6,
+          "after": 1.9,
+          "changePercent": 18.75,
+          "tolerancePercent": 5
+        },
+        {
+          "metric": "comparison.Matrix.updateMilliseconds",
+          "before": 0.5,
+          "after": 0.6,
+          "changePercent": 20,
+          "tolerancePercent": 5
+        }
+      ]
+    }
+  ]
 }

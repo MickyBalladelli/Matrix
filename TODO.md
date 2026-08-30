@@ -7,18 +7,18 @@ Published on npm: @mickyballadelli/matrix@next
 ## Foundation: Stability and Testing
 
 ### Core runtime stability
-- [ ] Add comprehensive error boundary tests for failures after partial DOM insertion
-- [ ] Add error boundary tests for failures inside lifecycle callbacks
-- [ ] Test error propagation through component trees
-- [ ] Add leak detection tests for repeated mount/unmount cycles (1000x+ unmounts)
-- [ ] Add leak detection for keyed list replacements
-- [ ] Add leak detection for forms with debounce cleanup
-- [ ] Add leak detection for router start/stop cycles
-- [ ] Add leak detection for scoped CSS and theme changes
-- [ ] Add leak detection for aborted resources (resource cleanup)
-- [ ] Verify effect cleanup runs in correct order during unmount
-- [ ] Test concurrent signal updates and batch behavior under stress
-- [ ] Test very large keyed lists (10k+ items) for performance and memory
+- [x] Add comprehensive error boundary tests for failures after partial DOM insertion
+- [x] Add error boundary tests for failures inside lifecycle callbacks
+- [x] Test error propagation through component trees
+- [x] Add leak detection tests for repeated mount/unmount cycles (1000x+ unmounts)
+- [x] Add leak detection for keyed list replacements
+- [x] Add leak detection for forms with debounce cleanup
+- [x] Add leak detection for router start/stop cycles
+- [x] Add leak detection for scoped CSS and theme changes
+- [x] Add leak detection for aborted resources (resource cleanup)
+- [x] Verify effect cleanup runs in correct order during unmount
+- [x] Test concurrent signal updates and batch behavior under stress
+- [x] Test very large keyed lists (10k+ items) for performance and memory
 
 ### Browser test automation
 - [ ] Add browser tests (Chromium, Firefox, WebKit)

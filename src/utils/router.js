@@ -1,5 +1,7 @@
 import { computed, signal } from '../reactivity/index.js'
 import { component } from '../components/index.js'
+import { onCleanup } from '../reactivity/scope.js'
+import { getCurrentRenderState, runWithRenderState } from '../reactivity/context.js'
 
 function normalizePath(path) {
   const value = String(path || '/')
@@ -59,6 +61,28 @@ export function createRouter(routeDefinitions = [], options = {}) {
     throw new Error('createRouter() must be used in a browser')
   }
 
+  const renderState = getCurrentRenderState()
+  if (renderState?.isRendering) {
+    const slot = renderState.stateCursor
+    renderState.stateCursor += 1
+    const existing = renderState.stateSlots[slot]
+
+    if (existing) {
+      if (existing.kind !== 'router') {
+        throw new Error(`Component state order changed at slot ${slot}`)
+      }
+      return existing.value
+    }
+
+    const value = runWithRenderState(null, () => createRouterState(routeDefinitions, options))
+    renderState.stateSlots[slot] = { kind: 'router', value }
+    return value
+  }
+
+  return createRouterState(routeDefinitions, options)
+}
+
+function createRouterState(routeDefinitions, options) {
   const routes = routeDefinitions.map(route => ({
     ...route,
     matcher: compileRoute(route.path)
@@ -72,6 +96,7 @@ export function createRouter(routeDefinitions = [], options = {}) {
   const hash = signal(window.location.hash)
   const current = computed(() => matchRoute(routes, path.value))
   let started = false
+  let disposed = false
 
   const onPopState = () => {
     path.value = normalizePath(stripBase(window.location.pathname))
@@ -80,6 +105,10 @@ export function createRouter(routeDefinitions = [], options = {}) {
   }
 
   function start() {
+    if (disposed) {
+      throw new Error('Cannot start a disposed router')
+    }
+
     if (started) {
       return stop
     }
@@ -98,7 +127,24 @@ export function createRouter(routeDefinitions = [], options = {}) {
     window.removeEventListener('popstate', onPopState)
   }
 
+  function dispose() {
+    if (disposed) {
+      return
+    }
+
+    disposed = true
+    stop()
+    current.dispose?.()
+    path.dispose?.()
+    search.dispose?.()
+    hash.dispose?.()
+  }
+
   async function navigate(nextPath, navigationOptions = {}) {
+    if (disposed) {
+      throw new Error('Cannot navigate a disposed router')
+    }
+
     const redirectDepth = navigationOptions._redirectDepth ?? 0
     if (redirectDepth > 10) {
       throw new Error('Router redirect limit exceeded')
@@ -155,7 +201,7 @@ export function createRouter(routeDefinitions = [], options = {}) {
       window.scrollTo?.({ top: 0, left: 0 })
     }
 
-    await options.afterEach?.({ ...context, route: current.value, to: current.value })
+    await options.afterEach?.({ ...context, route: current.value })
     return true
   }
 
@@ -177,6 +223,12 @@ export function createRouter(routeDefinitions = [], options = {}) {
     }
   }
 
+  try {
+    onCleanup(dispose)
+  } catch {
+    // A router can also live outside a component scope.
+  }
+
   return {
     path,
     search,
@@ -185,6 +237,7 @@ export function createRouter(routeDefinitions = [], options = {}) {
     routes,
     start,
     stop,
+    dispose,
     navigate,
     link
   }

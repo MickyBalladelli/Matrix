@@ -49,12 +49,16 @@ export function createScope(parent = getCurrentScope()) {
 
       disposed = true
 
+      let firstError
+
       for (const child of [...children]) {
-        child.dispose()
+        try {
+          child.dispose()
+        } catch (error) {
+          firstError ??= error
+        }
       }
       children.clear()
-
-      let firstError
 
       for (const cleanup of [...cleanups]) {
         cleanups.delete(cleanup)

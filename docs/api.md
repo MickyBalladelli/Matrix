@@ -139,10 +139,10 @@ stopPlugin()
 
 ## Utilities
 
-- `createRouter(routes, options)` provides `path`, `search`, `hash`, `current`, `start`, `stop`, async `navigate` and `link`.
+- `createRouter(routes, options)` provides `path`, `search`, `hash`, `current`, `start`, `stop`, `dispose`, async `navigate` and `link`.
 - `beforeEach` and `afterEach` may be async. `navigate()` resolves to `false` when a guard blocks navigation.
 - A route may define `redirect` as a path or function. Redirects replace history and stop after ten hops.
 - `routerView(router, fallback)` turns the current route into a view.
 - `createForm(initialValues, validators)` provides fields, values, errors, valid, validate and reset.
-- `resource(loader, options)` provides status, data, error, loading and reload.
+- `resource(loader, options)` provides status, data, error, loading, reload and dispose.
 - `createLogger`, `watchDebug`, `inspect`, `inspectEffects` and `setDevtoolsHook` support debugging.

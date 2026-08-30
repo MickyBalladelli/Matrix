@@ -15,6 +15,7 @@ import {
   onMount,
   onUnmount,
   resource,
+  inspectEffects,
   signal,
   usePlugin
 } from '../src/index.js'
@@ -368,6 +369,128 @@ const idempotentApp = mount(() => html`<p>idempotent</p>`, host)
 idempotentApp.unmount()
 idempotentApp.unmount()
 assert(host.textContent === '', 'Unmount must be idempotent')
+
+const partialFailureValue = {
+  toString() {
+    throw new Error('partial failure')
+  }
+}
+const partialFailure = () => html`
+  <span data-partial>partial</span>
+  <a href=${partialFailureValue}>broken</a>
+`
+const partialBoundaryApp = mount(() => errorBoundary(
+  () => component(partialFailure),
+  error => html`<strong data-fallback>${error.message}</strong>`
+), host)
+assert(host.querySelector('[data-fallback]')?.textContent === 'partial failure', 'Une erreur après insertion doit atteindre la frontière')
+assert(!host.querySelector('[data-partial]'), 'Une insertion partielle doit être annulée')
+partialBoundaryApp.unmount()
+
+const lifecycleFailure = () => {
+  onMount(() => {
+    throw new Error('mount failure')
+  })
+  return html`<span data-lifecycle>bad lifecycle</span>`
+}
+const lifecycleBoundaryApp = mount(() => errorBoundary(
+  () => component(lifecycleFailure),
+  error => html`<strong data-lifecycle-fallback>${error.message}</strong>`
+), host)
+assert(host.querySelector('[data-lifecycle-fallback]')?.textContent === 'mount failure', 'Une erreur de cycle de vie doit atteindre la frontière')
+assert(!host.querySelector('[data-lifecycle]'), 'Le DOM du cycle de vie en erreur doit être retiré')
+lifecycleBoundaryApp.unmount()
+
+const deepFailure = () => {
+  throw new Error('deep failure')
+}
+const middleFailure = () => component(deepFailure)
+const treeBoundaryApp = mount(() => errorBoundary(
+  () => component(middleFailure),
+  error => html`<strong data-tree-fallback>${error.message}</strong>`
+), host)
+assert(host.querySelector('[data-tree-fallback]')?.textContent === 'deep failure', 'Les erreurs doivent remonter dans l’arbre')
+treeBoundaryApp.unmount()
+
+const effectsBeforeCycles = inspectEffects().length
+const RepeatedMount = () => {
+  const local = signal(0)
+  return html`<button>${local}</button>`
+}
+for (let index = 0; index < 1000; index += 1) {
+  const cycleApp = mount(RepeatedMount, host)
+  cycleApp.unmount()
+}
+assert(inspectEffects().length === effectsBeforeCycles, 'Les montages répétés ne doivent pas laisser d’effets')
+
+const keyedLeakItems = signal([])
+const KeyedLeakItem = () => {
+  const local = signal(0)
+  return html`<span>${local}</span>`
+}
+const keyedLeakApp = mount(() => html`${keyed(keyedLeakItems, item => item.props.id)}`, host)
+const effectsBeforeKeyedCycles = inspectEffects().length
+for (let index = 0; index < 1000; index += 1) {
+  keyedLeakItems.value = [component(KeyedLeakItem, { id: index })]
+  keyedLeakItems.value = []
+}
+assert(inspectEffects().length === effectsBeforeKeyedCycles, 'Les remplacements keyed ne doivent pas laisser d’effets')
+keyedLeakApp.unmount()
+
+const debouncedValue = signal('')
+const debounceApp = mount(() => html`<input use:bind=${{ source: debouncedValue, debounce: 10 }}>`, host)
+const debounceInput = host.querySelector('input')
+debounceInput.value = 'late'
+debounceInput.dispatchEvent(new Event('input'))
+debounceApp.unmount()
+await new Promise(resolve => setTimeout(resolve, 20))
+assert(debouncedValue.value === '', 'Le debounce doit être annulé au démontage')
+
+const cycleRouter = createRouter([])
+for (let index = 0; index < 1000; index += 1) {
+  cycleRouter.start()
+  cycleRouter.stop()
+}
+cycleRouter.dispose()
+let disposedRouterError
+try {
+  cycleRouter.start()
+} catch (error) {
+  disposedRouterError = error
+}
+assert(disposedRouterError?.message.includes('disposed router'), 'Le routeur disposé doit refuser un nouveau démarrage')
+
+const themeLeakValue = signal('red')
+const themeLeakStyle = css`.theme-leak { color: var(--theme-leak) }`
+const themeLeakApp = mount(() => html`
+  <div use:style=${themeLeakStyle} use:vars=${cssVariables({ '--theme-leak': themeLeakValue })} class="theme-leak">theme</div>
+`, host)
+const effectsBeforeTheme = inspectEffects().length
+for (let index = 0; index < 1000; index += 1) {
+  themeLeakValue.value = index % 2 === 0 ? 'red' : 'blue'
+}
+themeLeakApp.unmount()
+assert(inspectEffects().length === effectsBeforeTheme - 1, 'Les changements de thème doivent nettoyer leur effet')
+
+let abortCount = 0
+const resourceApp = mount(() => {
+  const pending = resource(signalValue => new Promise((resolve, reject) => {
+    signalValue.addEventListener('abort', () => {
+      abortCount += 1
+      reject(new DOMException('aborted', 'AbortError'))
+    }, { once: true })
+  }), { immediate: true })
+  return html`<span>${pending.data}</span>`
+}, host)
+resourceApp.unmount()
+await new Promise(resolve => setTimeout(resolve, 0))
+assert(abortCount === 1, 'Une ressource abandonnée doit annuler son chargement')
+
+const largeItems = signal(Array.from({ length: 10000 }, (_, index) => index))
+const largeListApp = mount(() => html`${keyed(largeItems)}`, host)
+largeItems.value = [...largeItems.value].reverse()
+assert(host.textContent.startsWith('9999'), 'Une grande liste keyed doit se réordonner')
+largeListApp.unmount()
 
 document.body.dataset.matrixTests = 'passed'
 window.__MATRIX_TEST_RESULT__ = 'passed'

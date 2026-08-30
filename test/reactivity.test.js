@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { batch, computed, createScope, effect, signal } from '../src/index.js'
+import { batch, computed, createScope, effect, onCleanup, signal } from '../src/index.js'
 
 test('signal et effect suivent une dépendance', () => {
   const count = signal(0)
@@ -253,4 +253,85 @@ test('une exception nettoie les dépendances de la tentative de calcul', () => {
   assert.equal(source._source.subscribers.size, 0)
   assert.equal(other._source.subscribers.size, 0)
   stop?.()
+})
+
+test('un scope nettoie tous ses enfants et respecte leur ordre', () => {
+  const scope = createScope()
+  const child = createScope(scope)
+  const source = signal(0)
+  const order = []
+
+  scope.run(() => {
+    effect(() => {
+      source.value
+      return () => order.push('parent effect')
+    })
+    onCleanup(() => order.push('parent cleanup'))
+  })
+
+  child.run(() => {
+    effect(() => {
+      source.value
+      return () => order.push('child effect')
+    })
+    onCleanup(() => order.push('child cleanup'))
+  })
+
+  scope.dispose()
+
+  assert.deepEqual(order, [
+    'child effect',
+    'child cleanup',
+    'parent effect',
+    'parent cleanup'
+  ])
+})
+
+test('un cleanup qui échoue ne bloque pas les suivants', () => {
+  const scope = createScope()
+  const order = []
+
+  scope.add(() => {
+    order.push('first')
+    throw new Error('first cleanup')
+  })
+  scope.add(() => order.push('second'))
+
+  assert.throws(() => scope.dispose(), /first cleanup/)
+  assert.deepEqual(order, ['first', 'second'])
+})
+
+test('un effet en erreur est retiré de ses dépendances', () => {
+  const source = signal(0)
+  const stop = effect(() => {
+    if (source.value === 1) {
+      throw new Error('expected')
+    }
+  })
+
+  assert.throws(() => {
+    source.value = 1
+  }, /expected/)
+
+  assert.equal(source._source.subscribers.size, 0)
+  stop()
+})
+
+test('batch supporte beaucoup de mises à jour concurrentes', () => {
+  const source = signal(0)
+  let runs = 0
+
+  effect(() => {
+    source.value
+    runs += 1
+  })
+
+  batch(() => {
+    for (let index = 1; index <= 1000; index += 1) {
+      source.value = index
+    }
+  })
+
+  assert.equal(source.value, 1000)
+  assert.equal(runs, 2)
 })

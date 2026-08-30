@@ -15,6 +15,7 @@ export function effect(fn, options = {}) {
   }
 
   const dependencies = new Set()
+  const onError = typeof options.onError === 'function' ? options.onError : null
   let cleanup
   let running = false
   let stale = false
@@ -82,6 +83,19 @@ export function effect(fn, options = {}) {
           cleanup = nextCleanup
         }
       } while (stale && !stopped)
+    } catch (error) {
+      try {
+        stop()
+      } catch {
+        // Keep the original effect error.
+      }
+
+      if (onError) {
+        onError(error)
+        return
+      }
+
+      throw error
     } finally {
       running = false
     }
@@ -106,14 +120,29 @@ export function effect(fn, options = {}) {
 
     stopped = true
     scheduled = false
-    runCleanup()
-    removeDependencies()
+    let firstError
+
+    try {
+      runCleanup()
+    } catch (error) {
+      firstError = error
+    }
+
+    try {
+      removeDependencies()
+    } catch (error) {
+      firstError ??= error
+    }
 
     if (removeFromScope) {
       removeFromScope()
     }
 
     activeEffects.delete(observer)
+
+    if (firstError) {
+      throw firstError
+    }
   }
 
   const scope = getCurrentScope()

@@ -45,7 +45,9 @@ export function onMount(callback) {
     throw new Error('onMount() must be called inside a component')
   }
 
-  instance.mountCallbacks.push(callback)
+  if (!instance.isMounted) {
+    instance.mountCallbacks.push(callback)
+  }
 }
 
 export function onUnmount(cleanup) {
@@ -56,6 +58,10 @@ export function onUnmount(cleanup) {
   const instance = getCurrentComponent()
   if (!instance) {
     throw new Error('onUnmount() must be called inside a component')
+  }
+
+  if (instance.isMounted) {
+    return () => {}
   }
 
   return instance.scope.add(cleanup)

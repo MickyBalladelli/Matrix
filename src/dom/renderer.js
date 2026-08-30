@@ -55,6 +55,30 @@ function removeRange(start, end) {
   }
 }
 
+function disposeStates(states) {
+  let firstError
+
+  for (const state of [...states].reverse()) {
+    try {
+      state?.dispose?.()
+    } catch (error) {
+      firstError ??= error
+    }
+  }
+
+  if (firstError) {
+    throw firstError
+  }
+}
+
+function disposeQuietly(state) {
+  try {
+    state?.dispose?.()
+  } catch {
+    // Preserve the rendering error that caused the rollback.
+  }
+}
+
 function assertSafeUrl(name, value) {
   if (!URL_ATTRIBUTES.has(name.toLowerCase()) || typeof value !== 'string') {
     return
@@ -113,7 +137,18 @@ function nodeState(node, parent, before) {
 }
 
 function arrayState(values, parent, before, ownerScope) {
-  const states = values.map(value => renderDynamicValue(value, parent, before, ownerScope))
+  const states = []
+
+  try {
+    for (const value of values) {
+      states.push(renderDynamicValue(value, parent, before, ownerScope))
+    }
+  } catch (error) {
+    disposeQuietly({ dispose: () => disposeStates(states) })
+    throw error
+  }
+
+  let disposed = false
 
   return {
     get firstNode() {
@@ -128,9 +163,12 @@ function arrayState(values, parent, before, ownerScope) {
       }
     },
     dispose() {
-      for (const state of states) {
-        state.dispose()
+      if (disposed) {
+        return
       }
+
+      disposed = true
+      disposeStates(states)
     }
   }
 }
@@ -138,6 +176,7 @@ function arrayState(values, parent, before, ownerScope) {
 function renderDynamicValue(value, parent, before, ownerScope) {
   const bindingScope = createScope(ownerScope)
   let childState = emptyState()
+  let disposed = false
 
   const state = {
     get firstNode() {
@@ -150,27 +189,58 @@ function renderDynamicValue(value, parent, before, ownerScope) {
       childState.moveBefore(target)
     },
     dispose() {
-      childState.dispose()
-      bindingScope.dispose()
+      if (disposed) {
+        return
+      }
+
+      disposed = true
+      let firstError
+
+      try {
+        childState.dispose()
+      } catch (error) {
+        firstError = error
+      }
+
+      try {
+        bindingScope.dispose()
+      } catch (error) {
+        firstError ??= error
+      }
+
+      if (firstError) {
+        throw firstError
+      }
     }
   }
 
   function replace(nextValue) {
-    childState.dispose()
-    childState = renderResolvedValue(nextValue, parent, before, bindingScope)
+    const nextState = renderResolvedValue(nextValue, parent, before, bindingScope)
+    try {
+      childState.dispose()
+    } catch (error) {
+      disposeQuietly(nextState)
+      throw error
+    }
+    childState = nextState
   }
 
-  bindingScope.run(() => {
-    if (isReactiveValue(value)) {
-      effect(() => {
-        const nextValue = value.value
-        replace(nextValue)
-        emitDebugEvent({ type: 'dom:update', kind: 'content', parent, source: value })
-      })
-    } else {
-      replace(value)
-    }
-  })
+  try {
+    bindingScope.run(() => {
+      if (isReactiveValue(value)) {
+        effect(() => {
+          const nextValue = value.value
+          replace(nextValue)
+          emitDebugEvent({ type: 'dom:update', kind: 'content', parent, source: value })
+        })
+      } else {
+        replace(value)
+      }
+    })
+  } catch (error) {
+    disposeQuietly(state)
+    throw error
+  }
 
   return state
 }
@@ -235,7 +305,7 @@ function renderComponent(result, parent, before, ownerScope) {
   try {
     renderScope.run(() => {
       output = runComponentRender(instance, result)
-      outputState = runWithComponent(instance, () => renderResolvedValue(output, parent, before, componentScope))
+      outputState = runWithComponent(instance, () => renderResolvedValue(output, parent, before, renderScope))
     })
 
     const rootNode = outputState.nodes.find(node => node.nodeType === 1) ?? outputState.nodes[0] ?? null
@@ -249,7 +319,9 @@ function renderComponent(result, parent, before, ownerScope) {
     instance.mountCallbacks.length = 0
     instance.isMounted = true
   } catch (error) {
-    componentScope.dispose()
+    disposeQuietly(outputState)
+    disposeQuietly(renderScope)
+    disposeQuietly(componentScope)
 
     let boundary = parentInstance
     while (boundary) {
@@ -292,24 +364,75 @@ function renderComponent(result, parent, before, ownerScope) {
         return false
       }
 
-      outputState.dispose()
-      renderScope.dispose()
-      renderScope = createScope(componentScope)
-      result = nextResult
-      instance.result = nextResult
+      const previousOutput = output
+      const previousOutputState = outputState
+      const previousRenderScope = renderScope
+      const previousResult = result
+      const previousSlots = instance.stateSlots.slice()
       instance.mountCallbacks.length = 0
+      const nextRenderScope = createScope(componentScope)
+      let nextOutput
+      let nextOutputState
 
-      renderScope.run(() => {
-        output = runComponentRender(instance, result)
-        outputState = runWithComponent(instance, () => renderResolvedValue(output, parent, before, componentScope))
-      })
+      try {
+        nextRenderScope.run(() => {
+          nextOutput = runComponentRender(instance, nextResult)
+          nextOutputState = runWithComponent(instance, () => renderResolvedValue(nextOutput, parent, before, nextRenderScope))
+        })
+
+        previousOutputState.dispose()
+        previousRenderScope.dispose()
+        output = nextOutput
+        outputState = nextOutputState
+        renderScope = nextRenderScope
+        result = nextResult
+        instance.result = nextResult
+      } catch (error) {
+        disposeQuietly(nextOutputState)
+        disposeQuietly(nextRenderScope)
+        for (let index = previousSlots.length; index < instance.stateSlots.length; index += 1) {
+          disposeQuietly(instance.stateSlots[index]?.value)
+        }
+        instance.stateSlots.length = previousSlots.length
+        for (let index = 0; index < previousSlots.length; index += 1) {
+          instance.stateSlots[index] = previousSlots[index]
+        }
+        instance.mountCallbacks.length = 0
+        output = previousOutput
+        outputState = previousOutputState
+        renderScope = previousRenderScope
+        result = previousResult
+        instance.result = previousResult
+        throw error
+      }
 
       instance.mountCallbacks.length = 0
       return true
     },
     dispose() {
-      outputState.dispose()
-      componentScope.dispose()
+      let firstError
+
+      try {
+        outputState.dispose()
+      } catch (error) {
+        firstError = error
+      }
+
+      try {
+        renderScope.dispose()
+      } catch (error) {
+        firstError ??= error
+      }
+
+      try {
+        componentScope.dispose()
+      } catch (error) {
+        firstError ??= error
+      }
+
+      if (firstError) {
+        throw firstError
+      }
     }
   }
 }
@@ -515,6 +638,7 @@ function renderTemplate(result, parent, before, ownerScope) {
 
   const fragment = compiled.template.content.cloneNode(true)
   const textBindings = []
+  const dynamicStates = []
   const walker = document.createTreeWalker(fragment, 128)
   let node = walker.nextNode()
 
@@ -557,7 +681,12 @@ function renderTemplate(result, parent, before, ownerScope) {
   try {
     templateScope.run(() => {
       for (const binding of textBindings) {
-        renderDynamicValue(result.values[binding.index], binding.node.parentNode, binding.node, templateScope)
+        dynamicStates.push(renderDynamicValue(
+          result.values[binding.index],
+          binding.node.parentNode,
+          binding.node,
+          templateScope
+        ))
       }
 
       for (const binding of attributeBindings) {
@@ -565,10 +694,13 @@ function renderTemplate(result, parent, before, ownerScope) {
       }
     })
   } catch (error) {
-    templateScope.dispose()
+    disposeQuietly({ dispose: () => disposeStates(dynamicStates) })
+    disposeQuietly(templateScope)
     removeRange(start, end)
     throw error
   }
+
+  let disposed = false
 
   return {
     firstNode: start,
@@ -593,8 +725,34 @@ function renderTemplate(result, parent, before, ownerScope) {
       }
     },
     dispose() {
-      templateScope.dispose()
-      removeRange(start, end)
+      if (disposed) {
+        return
+      }
+
+      disposed = true
+      let firstError
+
+      try {
+        disposeStates(dynamicStates)
+      } catch (error) {
+        firstError = error
+      }
+
+      try {
+        templateScope.dispose()
+      } catch (error) {
+        firstError ??= error
+      }
+
+      try {
+        removeRange(start, end)
+      } catch (error) {
+        firstError ??= error
+      }
+
+      if (firstError) {
+        throw firstError
+      }
     }
   }
 }
@@ -605,6 +763,7 @@ function renderKeyedList(result, parent, before, ownerScope) {
   const end = parent.ownerDocument.createComment('matrix:keyed:end')
   const statesByKey = new Map()
   let orderedStates = []
+  let disposed = false
 
   parent.insertBefore(start, before)
   parent.insertBefore(end, before)
@@ -626,57 +785,92 @@ function renderKeyedList(result, parent, before, ownerScope) {
     const previous = new Map(statesByKey)
     const nextStates = []
     const nextByKey = new Map()
+    const createdStates = []
 
+    const keys = []
+    const seenKeys = new Set()
     for (const item of items) {
       const key = result.getKey(item)
-      if (nextByKey.has(key)) {
+      if (seenKeys.has(key)) {
         throw new Error(`Duplicate list key: ${String(key)}`)
       }
+      seenKeys.add(key)
+      keys.push(key)
+    }
 
-      const previousState = previous.get(key)
-      let state = previousState
+    try {
+      for (let index = 0; index < items.length; index += 1) {
+        const item = items[index]
+        const key = keys[index]
+        const previousState = previous.get(key)
+        let state = previousState
 
-      if (state?.canUpdate && !state.canUpdate(item)) {
-        state.dispose()
-        state = undefined
+        if (state?.canUpdate && !state.canUpdate(item)) {
+          state.dispose()
+          state = undefined
+        }
+
+        if (state?.update) {
+          if (!state.update(item)) {
+            state.dispose()
+            state = undefined
+          }
+        }
+
+        if (!state) {
+          state = renderResolvedValue(item, parent, end, listScope)
+          createdStates.push(state)
+        }
+
+        nextByKey.set(key, state)
+        nextStates.push(state)
       }
 
-      if (state?.update) {
-        state.update(item)
-      } else if (!state) {
-        state = renderResolvedValue(item, parent, end, listScope)
+      let cursor = end
+      for (let index = nextStates.length - 1; index >= 0; index -= 1) {
+        const state = nextStates[index]
+        state.moveBefore(cursor)
+        cursor = state.firstNode ?? cursor
       }
-      nextByKey.set(key, state)
-      nextStates.push(state)
-    }
 
-    for (const [key, state] of previous) {
-      if (!nextByKey.has(key)) {
-        state.dispose()
+      for (const [key, state] of previous) {
+        if (!nextByKey.has(key)) {
+          state.dispose()
+        }
       }
-    }
 
-    let cursor = end
-    for (let index = nextStates.length - 1; index >= 0; index -= 1) {
-      const state = nextStates[index]
-      state.moveBefore(cursor)
-      cursor = state.firstNode ?? cursor
+      statesByKey.clear()
+      for (const [key, state] of nextByKey) {
+        statesByKey.set(key, state)
+      }
+      orderedStates = nextStates
+    } catch (error) {
+      const allStates = new Set([...previous.values(), ...createdStates])
+      statesByKey.clear()
+      orderedStates = []
+      disposeQuietly({ dispose: () => disposeStates(allStates) })
+      throw error
     }
-
-    statesByKey.clear()
-    for (const [key, state] of nextByKey) {
-      statesByKey.set(key, state)
-    }
-    orderedStates = nextStates
   }
 
-  listScope.run(() => {
-    if (isReactiveValue(result.items)) {
-      effect(() => reconcile(result.items.value))
-    } else {
-      reconcile(result.items)
-    }
-  })
+  try {
+    listScope.run(() => {
+      if (isReactiveValue(result.items)) {
+        effect(() => reconcile(result.items.value))
+      } else {
+        reconcile(result.items)
+      }
+    })
+  } catch (error) {
+    disposeQuietly({
+      dispose() {
+        disposeStates(orderedStates)
+        listScope.dispose()
+      }
+    })
+    removeRange(start, end)
+    throw error
+  }
 
   return {
     firstNode: start,
@@ -693,20 +887,36 @@ function renderKeyedList(result, parent, before, ownerScope) {
       moveRange(target)
     },
     dispose() {
-      listScope.dispose()
-
-      for (const state of orderedStates) {
-        state.dispose()
+      if (disposed) {
+        return
       }
 
-      let current = start
-      while (current) {
-        const next = current.nextSibling
-        removeNode(current)
-        if (current === end) {
-          break
-        }
-        current = next
+      disposed = true
+      let firstError
+
+      try {
+        listScope.dispose()
+      } catch (error) {
+        firstError = error
+      }
+
+      try {
+        disposeStates(orderedStates)
+      } catch (error) {
+        firstError ??= error
+      }
+
+      statesByKey.clear()
+      orderedStates = []
+
+      try {
+        removeRange(start, end)
+      } catch (error) {
+        firstError ??= error
+      }
+
+      if (firstError) {
+        throw firstError
       }
     }
   }
@@ -727,7 +937,7 @@ export function mount(view, container, props = {}) {
       rendered = renderResolvedValue(rootView, container, null, rootScope)
     })
   } catch (error) {
-    rootScope.dispose()
+    disposeQuietly(rootScope)
     throw error
   }
 
@@ -741,8 +951,23 @@ export function mount(view, container, props = {}) {
       }
 
       unmounted = true
-      rendered.dispose()
-      rootScope.dispose()
+      let firstError
+
+      try {
+        rendered.dispose()
+      } catch (error) {
+        firstError = error
+      }
+
+      try {
+        rootScope.dispose()
+      } catch (error) {
+        firstError ??= error
+      }
+
+      if (firstError) {
+        throw firstError
+      }
     }
   }
 }

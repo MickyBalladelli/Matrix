@@ -142,6 +142,7 @@ export interface Router {
   readonly routes: RouteDefinition[]
   start(): () => void
   stop(): void
+  dispose(): void
   navigate(path: string, options?: { replace?: boolean; scroll?: boolean }): Promise<boolean>
   link(path: string): (event: MouseEvent) => Promise<boolean | void>
 }
@@ -173,6 +174,7 @@ export interface Resource<T> {
   error: Signal<unknown>
   loading: Computed<boolean>
   reload(...args: unknown[]): Promise<T | undefined>
+  dispose(): void
 }
 
 export function resource<T, Args extends unknown[] = unknown[]>(loader: (...args: [...Args, AbortSignal?]) => Promise<T>, options?: {

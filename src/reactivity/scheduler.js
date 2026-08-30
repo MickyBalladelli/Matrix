@@ -48,31 +48,55 @@ export function flushJobs() {
   flushing = true
   emitPlugin('scheduler', { type: 'flush:start', size: pendingJobs.size })
 
+  let firstError
+
   try {
     while (pendingJobs.size > 0) {
       const jobs = [...pendingJobs]
       pendingJobs.clear()
 
       for (const job of jobs) {
-        job()
+        try {
+          job()
+        } catch (error) {
+          firstError ??= error
+        }
       }
     }
   } finally {
     flushing = false
     emitPlugin('scheduler', { type: 'flush:end' })
   }
+
+  if (firstError) {
+    throw firstError
+  }
 }
 
 export function batch(fn) {
   batchDepth += 1
+  let result
+  let firstError
 
   try {
-    return fn()
-  } finally {
-    batchDepth -= 1
+    result = fn()
+  } catch (error) {
+    firstError = error
+  }
 
-    if (batchDepth === 0) {
+  batchDepth -= 1
+
+  if (batchDepth === 0) {
+    try {
       flushJobs()
+    } catch (error) {
+      firstError ??= error
     }
   }
+
+  if (firstError) {
+    throw firstError
+  }
+
+  return result
 }

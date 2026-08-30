@@ -163,12 +163,12 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Document minimum versions for each browser
 
 ### Node.js compatibility
-- [ ] Verify signal/computed work in Node (no DOM)
-- [ ] Test Node 18.x through current LTS
-- [ ] Verify errors on Node for browser-only APIs
-- [ ] Test in Cloudflare Workers environment
-- [ ] Test in Bun runtime
-- [ ] Test in Deno compatibility mode
+- [x] Verify signal/computed work in Node (no DOM)
+- [x] Test Node 18.x through current LTS
+- [x] Verify errors on Node for browser-only APIs
+- [x] Test in Cloudflare Workers environment
+- [x] Test in Bun runtime
+- [x] Test in Deno compatibility mode
 
 ### Build tool integration
 - [ ] Create Rollup plugin example for tree-shaking

@@ -1,9 +1,20 @@
 const runtimeKey = Symbol.for('@mickyballadelli/matrix.runtime')
 const previousRuntime = globalThis[runtimeKey]
-if (typeof previousRuntime === 'string' && previousRuntime !== import.meta.url) {
-  console.warn('Multiple @mickyballadelli/matrix runtimes are loaded. Keep a single instance.')
+const runtimeInfo = Object.freeze({
+  url: import.meta.url,
+  loadedAt: new Date().toISOString()
+})
+const previousInfo = typeof previousRuntime === 'string'
+  ? { url: previousRuntime, loadedAt: 'unknown' }
+  : previousRuntime
+
+if (previousInfo?.url && previousInfo.url !== import.meta.url) {
+  console.warn(
+    `[Matrix] Multiple @mickyballadelli/matrix runtimes are loaded. First: ${previousInfo.url} (${previousInfo.loadedAt}); current: ${runtimeInfo.url} (${runtimeInfo.loadedAt}). Keep one runtime copy so signals and plugins share the same graph.`,
+    { firstRuntime: previousInfo, currentRuntime: runtimeInfo }
+  )
 }
-globalThis[runtimeKey] = import.meta.url
+globalThis[runtimeKey] = runtimeInfo
 
 export {
   batch,

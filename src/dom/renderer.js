@@ -16,6 +16,7 @@ import { ERROR_BOUNDARY_RESULT, getCurrentComponent } from '../components/contex
 import { applyCssVariables, applyStyle } from '../styles/index.js'
 import { bindInput } from '../utils/form.js'
 import { emitDebugEvent } from '../utils/debug.js'
+import { describeValue, warnDiagnostic } from '../utils/diagnostics.js'
 import { isKeyedList } from './list.js'
 
 const EVENT_PREFIX = '@'
@@ -30,6 +31,64 @@ function isReactiveValue(value) {
     (value.kind === 'signal' || value.kind === 'computed') &&
     typeof value.get === 'function'
   )
+}
+
+function isDomNode(value) {
+  return Boolean(value && typeof value.nodeType === 'number' && typeof value.nodeName === 'string')
+}
+
+function isSupportedComponentOutput(value) {
+  return value === null || value === undefined || typeof value === 'boolean' ||
+    isReactiveValue(value) || isTemplateResult(value) || isKeyedList(value) ||
+    isComponentResult(value) || Array.isArray(value) || isDomNode(value) ||
+    typeof value === 'function'
+}
+
+function warnInvalidComponentOutput(instance, result, output) {
+  if (isSupportedComponentOutput(output)) {
+    return
+  }
+
+  const outputType = describeValue(output)
+  if (instance.invalidOutputWarnings.has(outputType)) {
+    return
+  }
+
+  instance.invalidOutputWarnings.add(outputType)
+  const name = result.render.name || 'anonymous'
+  warnDiagnostic(
+    `Component "${name}" returned ${outputType}. Return html\`...\`, a component, a Signal or Computed, an array, a DOM node, or null. The value will render as text.`,
+    { type: 'component:invalid-output', name, valueType: typeof output, source: result.render }
+  )
+}
+
+function addComponentErrorContext(error, result) {
+  const name = result.render.name
+  if (!name) {
+    return error
+  }
+
+  const prefix = `[${name}]`
+  const nextError = error instanceof Error
+    ? error
+    : new Error(`${prefix} ${String(error)}`, { cause: error })
+
+  if (!nextError.message.startsWith(prefix)) {
+    nextError.message = `${prefix} ${nextError.message}`
+  }
+
+  const sourceLocation = result._matrixSourceLocation
+  if (nextError.stack) {
+    const stackLines = nextError.stack.split('\n')
+    stackLines[0] = `${nextError.name}: ${nextError.message}`
+    if (sourceLocation && !nextError.stack.includes(`Component "${name}" was created here`)) {
+      stackLines.push(`\n[Matrix] Component "${name}" was created here:`)
+      stackLines.push(sourceLocation)
+    }
+    nextError.stack = stackLines.join('\n')
+  }
+
+  return nextError
 }
 
 function readValue(value) {
@@ -274,7 +333,7 @@ function renderResolvedValue(value, parent, before, ownerScope) {
     return arrayState(value, parent, before, ownerScope)
   }
 
-  if (value && typeof value.nodeType === 'number' && typeof value.nodeName === 'string') {
+  if (isDomNode(value)) {
     return nodeState(value, parent, before)
   }
 
@@ -295,7 +354,8 @@ function renderComponent(result, parent, before, ownerScope) {
     stateSlots: [],
     stateCursor: 0,
     isRendering: false,
-    isMounted: false
+    isMounted: false,
+    invalidOutputWarnings: new Set()
   }
 
   let output
@@ -323,13 +383,15 @@ function renderComponent(result, parent, before, ownerScope) {
     disposeQuietly(renderScope)
     disposeQuietly(componentScope)
 
+    const contextualError = addComponentErrorContext(error, result)
+
     let boundary = parentInstance
     while (boundary) {
       if (boundary.isErrorBoundary && !boundary.handling) {
         boundary.handling = true
         try {
           const fallback = typeof boundary.result.fallback === 'function'
-            ? boundary.result.fallback(error)
+            ? boundary.result.fallback(contextualError)
             : boundary.result.fallback
           return renderResolvedValue(fallback, parent, before, ownerScope)
         } finally {
@@ -339,11 +401,7 @@ function renderComponent(result, parent, before, ownerScope) {
       boundary = boundary.parent
     }
 
-    if (error instanceof Error && result.render.name) {
-      error.message = `[${result.render.name}] ${error.message}`
-    }
-
-    throw error
+    throw contextualError
   }
 
   return {
@@ -403,7 +461,7 @@ function renderComponent(result, parent, before, ownerScope) {
         renderScope = previousRenderScope
         result = previousResult
         instance.result = previousResult
-        throw error
+        throw addComponentErrorContext(error, nextResult)
       }
 
       instance.mountCallbacks.length = 0
@@ -449,6 +507,7 @@ function runComponentRender(instance, result) {
       throw new Error(`Component state order changed: expected ${expectedStateSlots} slots, received ${instance.stateCursor}`)
     }
 
+    warnInvalidComponentOutput(instance, result, output)
     return output
   } finally {
     instance.isRendering = false
@@ -792,6 +851,10 @@ function renderKeyedList(result, parent, before, ownerScope) {
     for (const item of items) {
       const key = result.getKey(item)
       if (seenKeys.has(key)) {
+        warnDiagnostic(
+          `Duplicate list key "${String(key)}" detected before reconciliation. Every key in a keyed list must be unique.`,
+          { type: 'list:duplicate-key', key }
+        )
         throw new Error(`Duplicate list key: ${String(key)}`)
       }
       seenKeys.add(key)

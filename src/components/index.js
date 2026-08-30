@@ -2,12 +2,13 @@ import {
   ERROR_BOUNDARY_RESULT,
   getCurrentComponent
 } from './context.js'
+import { captureCallsite, describeValue } from '../utils/diagnostics.js'
 
 export const COMPONENT_RESULT = Symbol('matrix.component.result')
 
 export function component(render, props = {}, key) {
   if (typeof render !== 'function') {
-    throw new TypeError('component() expects a render function')
+    throw new TypeError(`component() expects a render function. Received ${describeValue(render)}. Pass a function such as component(props => html\`<div>...</div>\`).`)
   }
 
   const sourceProps = props && typeof props === 'object' ? props : {}
@@ -20,7 +21,7 @@ export function component(render, props = {}, key) {
     }
   })
 
-  return {
+  const result = {
     [COMPONENT_RESULT]: true,
     key,
     render,
@@ -29,6 +30,13 @@ export function component(render, props = {}, key) {
       return nextResult?.render === render && nextResult?.key === key
     }
   }
+
+  Object.defineProperty(result, '_matrixSourceLocation', {
+    value: captureCallsite(),
+    enumerable: false
+  })
+
+  return result
 }
 
 export function isComponentResult(value) {
@@ -69,7 +77,7 @@ export function onUnmount(cleanup) {
 
 export function errorBoundary(render, fallback, props = {}) {
   if (typeof render !== 'function') {
-    throw new TypeError('errorBoundary() expects a render function')
+    throw new TypeError(`errorBoundary() expects a render function. Received ${describeValue(render)}. Pass a function such as errorBoundary(props => html\`<div>...</div>\`, fallback).`)
   }
 
   const protectedProps = props && typeof props === 'object'
@@ -83,7 +91,7 @@ export function errorBoundary(render, fallback, props = {}) {
       })
     : {}
 
-  return {
+  const result = {
     [COMPONENT_RESULT]: true,
     [ERROR_BOUNDARY_RESULT]: true,
     render,
@@ -93,6 +101,13 @@ export function errorBoundary(render, fallback, props = {}) {
       return nextResult?.render === render
     }
   }
+
+  Object.defineProperty(result, '_matrixSourceLocation', {
+    value: captureCallsite(),
+    enumerable: false
+  })
+
+  return result
 }
 
 export { inject, provide, runWithComponent } from './context.js'

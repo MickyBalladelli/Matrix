@@ -67,14 +67,14 @@ Published on npm: @mickyballadelli/matrix@next
 ## Developer Experience: Tools and Errors
 
 ### Error messages
-- [ ] Improve error message for invalid component render function
-- [ ] Add stack trace that points to user component, not internals
-- [ ] Add "Did you mean?" suggestions for common typos
-- [ ] Improve "Multiple runtimes loaded" warning with debug info
-- [ ] Add warnings for stale closures in effects (reading past scope)
-- [ ] Add warnings for effect dependency changes
-- [ ] Warn when component returns non-template, non-component value
-- [ ] Warn about duplicate keys before runtime error
+- [x] Improve error message for invalid component render function
+- [x] Add stack trace that points to user component, not internals
+- [x] Add "Did you mean?" suggestions for common typos
+- [x] Improve "Multiple runtimes loaded" warning with debug info
+- [x] Add warnings for stale closures in effects (reading past scope)
+- [x] Add warnings for effect dependency changes
+- [x] Warn when component returns non-template, non-component value
+- [x] Warn about duplicate keys before runtime error
 
 ### Development mode
 - [ ] Add `development` mode flag that enables strict checks

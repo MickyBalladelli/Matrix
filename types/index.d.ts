@@ -34,6 +34,7 @@ export function computed<T>(definition: { get: () => T; set: (value: T) => void 
 export interface EffectOptions {
   flush?: 'sync' | 'microtask'
   name?: string
+  warnOnDependencyChange?: boolean
 }
 
 export function effect(fn: () => void | (() => void), options?: EffectOptions): () => void

@@ -1,3 +1,5 @@
+import { suggestClosest } from './utils/suggestions.js'
+
 const extensionPoints = new Map([
   ['renderer', new Set()],
   ['scheduler', new Set()],
@@ -8,7 +10,7 @@ const extensionPoints = new Map([
 function getPoint(name) {
   const point = extensionPoints.get(name)
   if (!point) {
-    throw new TypeError(`Unknown plugin extension point: ${name}`)
+    throw new TypeError(`Unknown plugin extension point: ${name}${suggestClosest(name, [...extensionPoints.keys()])}`)
   }
   return point
 }

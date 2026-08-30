@@ -8,7 +8,7 @@ Matrix does not ship a browser extension. It exposes small hooks so an applicati
 
 - `renderer`: DOM content and attribute updates.
 - `scheduler`: jobs scheduled and flush boundaries.
-- `logger`: debug events, signal updates, and hot-signal warnings.
+- `logger`: debug events, signal updates, hot-signal warnings, and runtime diagnostics.
 - `style`: style application and disposal.
 
 Each `api.on()` call returns an unregister function. The plugin's optional cleanup runs before its registrations are removed.
@@ -45,7 +45,7 @@ The public event `type` values currently include:
 | --- | --- | --- |
 | `renderer` | `dom:update` | `kind`, `element` or `parent`, `name` or `source` |
 | `scheduler` | `job:scheduled`, `flush:start`, `flush:end` | `flush`, `size` |
-| `logger` | `signal:update`, `signal:hot`, plus debug DOM events | `name`, `value`, `source`, `count` |
+| `logger` | `signal:update`, `signal:hot`, debug DOM events, and runtime diagnostics | `name`, `value`, `source`, `count`, diagnostic-specific fields |
 | `style` | `style:apply`, `style:dispose` | `element`, `definition` |
 
 Event objects are intentionally open-ended. Read the `type` first and treat optional fields defensively.

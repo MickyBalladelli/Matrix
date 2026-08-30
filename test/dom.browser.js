@@ -116,6 +116,30 @@ try {
   namedError = error
 }
 assert(namedError?.message.includes('[bad]'), 'Les erreurs doivent inclure le composant')
+assert(namedError?.stack?.includes('dom.browser.js'), 'La trace doit pointer vers le composant utilisateur')
+
+const diagnosticEvents = []
+const diagnosticPlugin = usePlugin({
+  install(api) {
+    return api.on('logger', event => diagnosticEvents.push(event))
+  }
+})
+
+const InvalidOutput = () => ({ invalid: true })
+const invalidOutputApp = mount(() => component(InvalidOutput), host)
+assert(host.textContent.includes('[object Object]'), 'Une sortie invalide doit rester visible comme texte')
+assert(diagnosticEvents.some(event => event.type === 'component:invalid-output' && event.name === 'InvalidOutput'), 'Une sortie de composant invalide doit produire un diagnostic')
+invalidOutputApp.unmount()
+
+let duplicateKeyError
+try {
+  mount(() => html`${keyed([{ id: 1 }, { id: 1 }], item => item.id)}`, host)
+} catch (error) {
+  duplicateKeyError = error
+}
+assert(duplicateKeyError?.message.includes('Duplicate list key: 1'), 'Les clés dupliquées doivent échouer clairement')
+assert(diagnosticEvents.some(event => event.type === 'list:duplicate-key' && event.key === 1), 'Une clé dupliquée doit produire un diagnostic avant l’erreur')
+diagnosticPlugin()
 
 let templateError
 try {

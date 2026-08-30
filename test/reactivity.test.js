@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { batch, computed, createScope, effect, onCleanup, signal } from '../src/index.js'
+import { batch, component, computed, createScope, effect, onCleanup, signal, usePlugin } from '../src/index.js'
 
 test('signal et effect suivent une dépendance', () => {
   const count = signal(0)
@@ -73,13 +73,46 @@ test('les dépendances conditionnelles sont retirées', () => {
 
   effect(() => {
     values.push(enabled.value ? first.value : second.value)
-  })
+  }, { warnOnDependencyChange: false })
 
   enabled.value = false
   first.value = 'ignored'
   second.value = 'used'
 
   assert.deepEqual(values, ['first', 'second', 'used'])
+})
+
+test('les erreurs de composant et options suggèrent une correction', () => {
+  assert.throws(() => component(42), error => {
+    assert(error instanceof TypeError)
+    assert.match(error.message, /Received number \(42\)/)
+    assert.match(error.message, /component\(props => html/)
+    return true
+  })
+
+  assert.throws(() => effect(() => {}, { flush: 'micotask' }), /Did you mean "microtask"\?/)
+})
+
+test('un changement de dépendances signale le risque de fermeture obsolète', () => {
+  const events = []
+  const stopPlugin = usePlugin({
+    install(api) {
+      return api.on('logger', event => events.push(event))
+    }
+  })
+  const enabled = signal(true)
+  const first = signal('first')
+  const second = signal('second')
+  const stop = effect(() => enabled.value ? first.value : second.value, { name: 'conditionalEffect' })
+
+  enabled.value = false
+  stop()
+  stopPlugin()
+
+  const warning = events.find(event => event.type === 'effect:dependencies-changed')
+  assert(warning, 'Un changement de dépendances doit produire un diagnostic')
+  assert.equal(warning.name, 'conditionalEffect')
+  assert.equal(warning.staleClosureRisk, true)
 })
 
 test('computed est cache et se recalcule après invalidation', () => {

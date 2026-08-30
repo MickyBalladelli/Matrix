@@ -16,6 +16,8 @@ Returns a lazy derived value with `value`, `get()`, `peek()` and `subscribe(fn)`
 
 Runs `fn` immediately and after every dependency change. Returns `stop()`. A function returned by `fn` runs before the next execution and when stopped. `options.flush` is `sync` or `microtask`.
 
+Name Effects with `options.name` so diagnostics can identify them. By default Matrix warns when an Effect changes its dependency set and includes a stale-closure reminder. Set `warnOnDependencyChange: false` for an intentional dynamic dependency pattern. Avoid `async` Effect callbacks: Matrix does not await them, so return cleanup that cancels asynchronous work or use `resource()`.
+
 ### `batch(fn)`
 
 Groups notifications produced during `fn` and returns the callback's result. Use it when one command changes several sources:
@@ -197,7 +199,7 @@ Stable for this alpha: `signal`, `computed`, `effect`, `batch`, `html`, `compone
 
 - `renderer`: `dom:update` events with the binding kind and affected element or parent.
 - `scheduler`: `job:scheduled`, `flush:start`, and `flush:end` events.
-- `logger`: `signal:update`, `signal:hot`, and debug DOM events.
+- `logger`: `signal:update`, `signal:hot`, debug DOM events, and runtime diagnostics such as dependency changes, invalid component output, and duplicate keys.
 - `style`: `style:apply` and `style:dispose` events.
 
 Each `api.on(point, hook)` call returns an unregister function. The plugin's optional cleanup runs before Matrix removes its registrations:

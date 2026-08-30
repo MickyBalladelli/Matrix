@@ -80,6 +80,16 @@ Fix: pass a valid CSS selector and callback.
 
 ## Reactivity and scopes
 
+### `Effect "<name>" changed dependencies ...`
+
+This warning means an Effect read a different set of signals or Computeds than on its previous run. That is often a stale-closure risk when asynchronous work is not cancelled.
+
+Fix: return cleanup that cancels work started by the Effect. Give the Effect a name with `name` for easier debugging. Set `warnOnDependencyChange: false` for an intentional dynamic dependency pattern.
+
+### `Effect "<name>" returned a Promise ...`
+
+Matrix does not await an Effect callback. Return cleanup that cancels asynchronous work, or use `resource()` for async loading.
+
 ### `signal.subscribe() expects a function`
 
 Cause: `subscribe` received a non-function listener.
@@ -160,11 +170,19 @@ Fix: create component state unconditionally in stable order. Put conditions insi
 
 ## Components and lists
 
-### `component() expects a render function`
+### `component() expects a render function. Received ...`
 
 Cause: the first argument to `component` is not callable.
 
-Fix: pass a function that receives props and returns a Matrix view.
+Fix: pass a function that receives props and returns a Matrix view. The error includes the received value and a corrected usage example.
+
+When a named component fails, Matrix prefixes the error with `[ComponentName]` and appends the component creation location to the stack when available. This keeps the user component visible alongside the original error.
+
+### `Component "<name>" returned ...`
+
+This warning means a component returned a plain object, number, string, or another value that is rendered as text instead of a Matrix template, component, Signal, Computed, array, or DOM node.
+
+Fix: return `html\`...\``, a component result, reactive value, array, DOM node, or `null`.
 
 ### `Component props are read-only`
 
@@ -202,9 +220,9 @@ Cause: the second argument to `keyed` is not callable.
 
 Fix: pass `item => item.id`, or omit the argument to use an item's `key` or identity.
 
-### `Duplicate list key: <key>`
+### `Duplicate list key "<key>" detected before reconciliation`
 
-Cause: two items in the same keyed list returned the same key.
+Cause: two items in the same keyed list returned the same key. Matrix emits this warning before throwing `Duplicate list key: <key>`.
 
 Fix: use a stable unique ID. Do not use an array index when insertion or removal can reorder items.
 
@@ -282,7 +300,7 @@ Fix: use a normal external `<a href>` for external navigation. Use `router.navig
 
 Cause: a plugin used a point other than `renderer`, `scheduler`, `logger`, or `style`.
 
-Fix: choose one of the four public points.
+Fix: choose one of the four public points. Common misspellings include a `Did you mean "..."?` suggestion.
 
 ### `usePlugin() expects a plugin with install(api)`
 
@@ -304,7 +322,7 @@ Fix: pass a Signal or Computed.
 
 ### `Multiple @mickyballadelli/matrix runtimes are loaded...`
 
-This is a warning, not a thrown error. It means the application bundled more than one Matrix runtime copy. Deduplicate the dependency and avoid mixing a linked source copy with the published package.
+This is a warning, not a thrown error. It means the application bundled more than one Matrix runtime copy. The warning includes the first and current runtime URLs and load timestamps. Deduplicate the dependency and avoid mixing a linked source copy with the published package.
 
 ## Local release checks
 

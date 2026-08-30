@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { extname, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, firefox, webkit } from '@playwright/test'
+import { suggestClosest } from '../src/utils/suggestions.js'
 
 const root = resolve(fileURLToPath(new URL('../', import.meta.url)))
 const contentTypes = {
@@ -21,7 +22,7 @@ const selectedBrowsers = requestedBrowser
   : Object.entries(browserTypes)
 
 if (selectedBrowsers.some(([, browserType]) => !browserType)) {
-  throw new Error(`Unknown browser. Use one of: ${Object.keys(browserTypes).join(', ')}`)
+  throw new Error(`Unknown browser "${requestedBrowser}". Use one of: ${Object.keys(browserTypes).join(', ')}${suggestClosest(requestedBrowser, Object.keys(browserTypes))}`)
 }
 
 const timeout = Number(process.env.MATRIX_BROWSER_TIMEOUT ?? 30000)

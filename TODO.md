@@ -107,11 +107,11 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Test keyboard navigation through router links and form fields
 
 ### Example applications
-- [ ] Create "Shopping Cart" example (routing, forms, API calls, state)
-- [ ] Create "Notes App" example (complex forms, search, local storage)
-- [ ] Create "Dashboard" example (many components, performance considerations)
-- [ ] Create "Real-time Chat" example (WebSocket, message handling)
-- [ ] Each example should include tests and performance notes
+- [x] Create "Shopping Cart" example (routing, forms, API calls, state)
+- [x] Create "Notes App" example (complex forms, search, local storage)
+- [x] Create "Dashboard" example (many components, performance considerations)
+- [x] Create "Real-time Chat" example (WebSocket, message handling)
+- [x] Each example should include tests and performance notes
 
 ### Edge cases
 - [ ] Test re-rendering during unmount

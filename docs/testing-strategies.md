@@ -50,7 +50,7 @@ Cover equality, dynamic dependencies, sync and microtask flushing, nested scopes
 
 ## Browser tests for the DOM
 
-Browser fixtures should run against a real document. The local runner serves the repository over HTTP, opens `test/dom.browser.html`, and waits for `window.__MATRIX_TEST_RESULT__ === 'passed'`.
+Browser fixtures should run against a real document. The local runner serves the repository over HTTP, opens the DOM, integration, and example fixtures, and waits for `window.__MATRIX_TEST_RESULT__ === 'passed'`.
 
 Add an assertion to `test/dom.browser.js` when testing rendering, event modifiers, form controls, styles, components, router behavior, or browser-only APIs. Keep the fixture deterministic and write a clear assertion message:
 
@@ -59,6 +59,8 @@ assert(button.textContent === 'Saved', 'button shows the saved state')
 ```
 
 If a test needs asynchronous work, await it in the browser fixture and set the result marker only after the final assertion. Test both the first mount and a mount after unmounting when cleanup matters.
+
+Example applications expose injectable API, storage, and WebSocket adapters. Keep example tests in `test/examples.browser.js` and use deterministic adapters there so local tests do not depend on a service or network.
 
 ## Type tests
 

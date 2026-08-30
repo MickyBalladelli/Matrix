@@ -53,6 +53,15 @@ export default defineConfig({
 
 A complete Counter application lives in `examples/counter`. The TODO application lives in `examples/todo`.
 
+The repository also includes complete feature examples:
+
+- `examples/shopping-cart`: catalog, cart state, routing, checkout validation, and an async order adapter.
+- `examples/notes`: searchable notes, a complex editor form, and local storage persistence.
+- `examples/dashboard`: keyed metric components, filters, async data, and performance timeline capture.
+- `examples/chat`: WebSocket lifecycle and message handling with an offline echo transport.
+
+Each example has a README with local run, test, and performance notes. The example browser fixture runs with `npm run test:browser -- --fixture test/examples.browser.html`.
+
 ## Independent Matrix + Vite app
 
 The `examples/vite-app` directory is a standalone Matrix app. It has its own `package.json`, Vite commands and dependencies. It does not use the root project scripts. It also shows optional JSX support.

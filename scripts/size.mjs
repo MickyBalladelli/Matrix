@@ -14,13 +14,13 @@ const entries = {
 }
 
 const brotliBudgets = {
-  root: 16000,
+  root: 17000,
   reactivity: 4000,
   components: 2000,
   dom: 11000,
   'jsx-runtime': 12000,
   styles: 5000,
-  utils: 7000,
+  utils: 9000,
   plugins: 1500
 }
 const budgetTolerance = 0.02

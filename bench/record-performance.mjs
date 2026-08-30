@@ -10,6 +10,8 @@ const historyFile = resolve(root, historyArgument)
 const phase = valueFor('--phase') ?? 'baseline'
 const change = valueFor('--change') ?? null
 const label = valueFor('--label') ?? packageJson.version
+const browserArgument = valueFor('--browser')
+const fixtureArgument = valueFor('--fixture')
 const check = process.argv.includes('--check')
 
 if (!['baseline', 'before', 'after'].includes(phase)) {
@@ -22,6 +24,10 @@ if ((phase === 'before' || phase === 'after') && !change) {
 
 if (historyFile !== root && !historyFile.startsWith(`${root}${sep}`)) {
   throw new Error(`Performance history must be inside the repository: ${historyArgument}`)
+}
+
+if (browserArgument && !['chromium', 'firefox', 'webkit'].includes(browserArgument)) {
+  throw new Error(`Unknown browser "${browserArgument}". Use one of: chromium, firefox, webkit`)
 }
 
 function valueFor(flag) {
@@ -125,7 +131,15 @@ if (phase === 'after' && !reference) {
   throw new Error(`No matching before run found for optimization "${change}"`)
 }
 
-const browser = runJson(process.execPath, ['bench/run-browser-benchmark.mjs', '--json'])
+const browserArguments = ['bench/run-browser-benchmark.mjs', '--json']
+if (browserArgument) {
+  browserArguments.push('--browser', browserArgument)
+}
+if (fixtureArgument) {
+  browserArguments.push('--fixture', fixtureArgument)
+}
+
+const browser = runJson(process.execPath, browserArguments)
 const entry = {
   id: `${Date.now()}-${label}`,
   label,

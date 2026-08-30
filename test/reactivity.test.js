@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { batch, component, computed, configure, createDevtools, createForm, createScope, effect, getRuntimeConfig, onCleanup, signal, usePlugin } from '../src/index.js'
 
-test('signal et effect suivent une dépendance', () => {
+test('signal and effect follow a dependency', () => {
   const count = signal(0)
   const values = []
   const stop = effect(() => values.push(count.value))
@@ -14,7 +14,7 @@ test('signal et effect suivent une dépendance', () => {
   assert.deepEqual(values, [0, 1])
 })
 
-test('signal accepte une comparaison personnalisée', () => {
+test('signal accepts a custom comparator', () => {
   const source = signal({ count: 0 }, { equals: (left, right) => left.count === right.count })
   let runs = 0
 
@@ -29,7 +29,7 @@ test('signal accepte une comparaison personnalisée', () => {
   assert.equal(runs, 2)
 })
 
-test('signal respecte Object.is pour NaN, 0 et -0', () => {
+test('signal respects Object.is for NaN, 0, and -0', () => {
   const source = signal(NaN)
   let runs = 0
 
@@ -45,7 +45,7 @@ test('signal respecte Object.is pour NaN, 0 et -0', () => {
   assert.equal(runs, 3)
 })
 
-test('plusieurs Effects reçoivent la même mise à jour', () => {
+test('multiple Effects receive the same update', () => {
   const source = signal(0)
   let firstRuns = 0
   let secondRuns = 0
@@ -65,7 +65,7 @@ test('plusieurs Effects reçoivent la même mise à jour', () => {
   assert.equal(secondRuns, 2)
 })
 
-test('les dépendances conditionnelles sont retirées', () => {
+test('conditional dependencies are removed', () => {
   const enabled = signal(true)
   const first = signal('first')
   const second = signal('second')
@@ -82,7 +82,7 @@ test('les dépendances conditionnelles sont retirées', () => {
   assert.deepEqual(values, ['first', 'second', 'used'])
 })
 
-test('les erreurs de composant et options suggèrent une correction', () => {
+test('component and option errors suggest a fix', () => {
   assert.throws(() => component(42), error => {
     assert(error instanceof TypeError)
     assert.match(error.message, /Received number \(42\)/)
@@ -93,7 +93,7 @@ test('les erreurs de composant et options suggèrent une correction', () => {
   assert.throws(() => effect(() => {}, { flush: 'micotask' }), /Did you mean "microtask"\?/)
 })
 
-test('un changement de dépendances signale le risque de fermeture obsolète', () => {
+test('dependency changes warn about stale closure risk', () => {
   const events = []
   const stopPlugin = usePlugin({
     install(api) {
@@ -110,12 +110,12 @@ test('un changement de dépendances signale le risque de fermeture obsolète', (
   stopPlugin()
 
   const warning = events.find(event => event.type === 'effect:dependencies-changed')
-  assert(warning, 'Un changement de dépendances doit produire un diagnostic')
+  assert(warning, 'A dependency change must emit a diagnostic')
   assert.equal(warning.name, 'conditionalEffect')
   assert.equal(warning.staleClosureRisk, true)
 })
 
-test('le mode développement signale les lectures et mutations non réactives', () => {
+test('development mode reports untracked reads and mutations', () => {
   const previousConfig = getRuntimeConfig()
   const events = []
   const stopPlugin = usePlugin({
@@ -146,25 +146,25 @@ test('le mode développement signale les lectures et mutations non réactives', 
     configure(previousConfig)
   }
 
-  assert(events.some(event => event.type === 'reactivity:untracked-read' && event.name === 'outside'), 'Une lecture hors contexte réactif doit produire un diagnostic')
-  assert(events.some(event => event.type === 'component:prop-mutation'), 'Une mutation de props doit produire un diagnostic')
+  assert(events.some(event => event.type === 'reactivity:untracked-read' && event.name === 'outside'), 'An out-of-context reactive read must emit a diagnostic')
+  assert(events.some(event => event.type === 'component:prop-mutation'), 'A props mutation must emit a diagnostic')
 })
 
-test('les DevTools exposent le graphe réactif et la timeline locale', () => {
+test('DevTools expose the reactive graph and local timeline', () => {
   const devtools = createDevtools({ globalName: null, redact: false })
   const source = signal(1, { name: 'source' })
   const doubled = computed(() => source.value * 2, { name: 'doubled' })
   const stop = effect(() => doubled.value, { name: 'panelEffect' })
 
   const snapshot = devtools.snapshot()
-  assert(snapshot.sources.some(item => item.name === 'source' && item.value === 1), 'Les DevTools doivent inspecter les Signals')
-  assert(snapshot.sources.some(item => item.name === 'doubled' && item.value === 2), 'Les DevTools doivent inspecter les Computeds')
-  assert(snapshot.effects.some(item => item.name === 'panelEffect' && item.dependencyNames.includes('doubled')), 'Les DevTools doivent exposer les dépendances des Effects')
+  assert(snapshot.sources.some(item => item.name === 'source' && item.value === 1), 'DevTools must inspect Signals')
+  assert(snapshot.sources.some(item => item.name === 'doubled' && item.value === 2), 'DevTools must inspect Computeds')
+  assert(snapshot.effects.some(item => item.name === 'panelEffect' && item.dependencyNames.includes('doubled')), 'DevTools must expose Effect dependencies')
 
   devtools.timeline.start()
   source.value = 2
   devtools.timeline.stop()
-  assert(devtools.timeline.snapshot().some(item => item.point === 'scheduler'), 'La timeline doit enregistrer les événements du scheduler')
+  assert(devtools.timeline.snapshot().some(item => item.point === 'scheduler'), 'The timeline must record scheduler events')
 
   stop()
   doubled.dispose()
@@ -172,7 +172,7 @@ test('les DevTools exposent le graphe réactif et la timeline locale', () => {
   devtools.dispose()
 })
 
-test('computed est cache et se recalcule après invalidation', () => {
+test('computed is cached and recalculates after invalidation', () => {
   const source = signal(2)
   let runs = 0
   const doubled = computed(() => {
@@ -190,7 +190,7 @@ test('computed est cache et se recalcule après invalidation', () => {
   assert.equal(runs, 2)
 })
 
-test('les computed peuvent être imbriqués', () => {
+test('computed values can be nested', () => {
   const source = signal(2)
   const doubled = computed(() => source.value * 2)
   const label = computed(() => `value:${doubled.value}`)
@@ -200,7 +200,7 @@ test('les computed peuvent être imbriqués', () => {
   assert.equal(label.value, 'value:8')
 })
 
-test('un computed peut déléguer son écriture', () => {
+test('a computed value can delegate its writes', () => {
   const source = signal(1)
   const doubled = computed({
     get: () => source.value * 2,
@@ -214,7 +214,7 @@ test('un computed peut déléguer son écriture', () => {
   assert.equal(doubled.value, 10)
 })
 
-test('le nettoyage d’un Effect est appelé avant sa prochaine exécution', () => {
+test('Effect cleanup runs before its next execution', () => {
   const source = signal(0)
   const cleanups = []
 
@@ -228,7 +228,7 @@ test('le nettoyage d’un Effect est appelé avant sa prochaine exécution', () 
   assert.deepEqual(cleanups, [1])
 })
 
-test('batch regroupe les Effects', () => {
+test('batch groups Effects', () => {
   const first = signal(0)
   const second = signal(0)
   let runs = 0
@@ -247,7 +247,7 @@ test('batch regroupe les Effects', () => {
   assert.equal(runs, 2)
 })
 
-test('batch regroupe aussi les invalidations de Computed', () => {
+test('batch also groups Computed invalidations', () => {
   const source = signal(0)
   let computedRuns = 0
   let effectRuns = 0
@@ -274,7 +274,7 @@ test('batch regroupe aussi les invalidations de Computed', () => {
   source.dispose()
 })
 
-test('un scope dispose ses Effects', () => {
+test('a scope disposes its Effects', () => {
   const scope = createScope()
   const source = signal(0)
   let runs = 0
@@ -290,7 +290,7 @@ test('un scope dispose ses Effects', () => {
   assert.equal(runs, 1)
 })
 
-test('dispose retire les abonnements d’un signal', () => {
+test('dispose removes a signal subscription', () => {
   const source = signal(0)
   const stop = effect(() => source.value)
 
@@ -301,7 +301,7 @@ test('dispose retire les abonnements d’un signal', () => {
   stop()
 })
 
-test('une erreur ne bloque pas les autres abonnés', () => {
+test('an error does not block other subscribers', () => {
   const source = signal(0)
   let safeRuns = 0
 
@@ -321,7 +321,7 @@ test('une erreur ne bloque pas les autres abonnés', () => {
   assert.equal(safeRuns, 2)
 })
 
-test('les cycles réactifs sont limités', () => {
+test('reactive cycles are limited', () => {
   const source = signal(0)
 
   assert.throws(() => {
@@ -332,7 +332,7 @@ test('les cycles réactifs sont limités', () => {
   }, /Reactive loop detected/)
 })
 
-test('un Effect peut créer un autre Effect', () => {
+test('an Effect can create another Effect', () => {
   const outerSource = signal(false)
   const innerSource = signal(0)
   let innerRuns = 0
@@ -354,7 +354,7 @@ test('un Effect peut créer un autre Effect', () => {
   assert.equal(innerRuns, 2)
 })
 
-test('une exception nettoie les dépendances de la tentative de calcul', () => {
+test('an exception cleans up dependencies from the failed computation', () => {
   const source = signal(0)
   const other = signal(0)
   let stop
@@ -372,7 +372,7 @@ test('une exception nettoie les dépendances de la tentative de calcul', () => {
   stop?.()
 })
 
-test('un scope nettoie tous ses enfants et respecte leur ordre', () => {
+test('a scope cleans up all children in order', () => {
   const scope = createScope()
   const child = createScope(scope)
   const source = signal(0)
@@ -404,7 +404,7 @@ test('un scope nettoie tous ses enfants et respecte leur ordre', () => {
   ])
 })
 
-test('un cleanup qui échoue ne bloque pas les suivants', () => {
+test('a failed cleanup does not block later cleanups', () => {
   const scope = createScope()
   const order = []
 
@@ -418,7 +418,7 @@ test('un cleanup qui échoue ne bloque pas les suivants', () => {
   assert.deepEqual(order, ['first', 'second'])
 })
 
-test('un effet en erreur est retiré de ses dépendances', () => {
+test('an errored Effect is removed from its dependencies', () => {
   const source = signal(0)
   const stop = effect(() => {
     if (source.value === 1) {
@@ -434,7 +434,7 @@ test('un effet en erreur est retiré de ses dépendances', () => {
   stop()
 })
 
-test('batch supporte beaucoup de mises à jour concurrentes', () => {
+test('batch supports many concurrent updates', () => {
   const source = signal(0)
   let runs = 0
 

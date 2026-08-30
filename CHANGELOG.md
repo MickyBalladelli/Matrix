@@ -8,6 +8,7 @@
 - Narrow `npm test` to `test/*.test.js` and harden the browser test runner.
 - Add a local pre-release audit for package contents, exports, production logs, Node deprecations, changelog structure, and performance history.
 - Add stable release preparation and verification commands for package metadata, release notes, npm tags, and the app generator.
+- Rebaseline Brotli budgets at 17,000 bytes for the full runtime and 9,000 bytes for utilities after the release API additions.
 
 ## 0.1.0-alpha.0 — 2026-08-29
 

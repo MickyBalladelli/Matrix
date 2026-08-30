@@ -224,6 +224,12 @@ export interface BindOptions<T = unknown> {
   sanitize?: (value: T) => T
 }
 
+export function bindInput<T>(
+  element: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+  source: Signal<T> | BindOptions<T>,
+  scope: Scope
+): void
+
 export function createForm<T extends Record<string, unknown>>(
   initialValues: T,
   validators?: Partial<{ [K in keyof T]: (value: T[K], values: T) => string | undefined }>,

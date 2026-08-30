@@ -5,10 +5,13 @@ import type { Reactive } from './index.js'
 type MatrixValue<T> = T | Reactive<T>
 type DataAttributes = { [Name in `data-${string}`]?: MatrixValue<string | number | boolean | null | undefined> }
 type AriaAttributes = { [Name in `aria-${string}`]?: MatrixValue<string | number | boolean | null | undefined> }
-type EventAttributes = {
-  [Name in keyof GlobalEventHandlersEventMap as `on${Capitalize<Name & string>}`]?: (event: GlobalEventHandlersEventMap[Name]) => void
+type MatrixEvent<EventType, ElementType extends Element> = EventType extends Event
+  ? Omit<EventType, 'currentTarget'> & { readonly currentTarget: ElementType }
+  : EventType
+type EventAttributes<ElementType extends Element> = {
+  [Name in keyof GlobalEventHandlersEventMap as `on${Capitalize<Name & string>}`]?: (event: MatrixEvent<GlobalEventHandlersEventMap[Name], ElementType>) => void
 } & {
-  [Name in keyof GlobalEventHandlersEventMap as `on${Capitalize<Name & string>}${'Capture' | 'Once' | 'Passive' | 'Prevent' | 'Stop'}`]?: (event: GlobalEventHandlersEventMap[Name]) => void
+  [Name in keyof GlobalEventHandlersEventMap as `on${Capitalize<Name & string>}${'Capture' | 'Once' | 'Passive' | 'Prevent' | 'Stop'}`]?: (event: MatrixEvent<GlobalEventHandlersEventMap[Name], ElementType>) => void
 }
 type ReservedElementAttribute = 'children' | 'class' | 'className' | 'style' | 'key' | `on${string}` | `data-${string}` | `aria-${string}` | `use:${string}`
 type ElementProperties<ElementType> = {
@@ -21,7 +24,7 @@ type ElementProperties<ElementType> = {
     : never]?: MatrixValue<ElementType[Name]>
 }
 
-export type IntrinsicElementAttributes<ElementType extends Element> = ElementProperties<ElementType> & EventAttributes & DataAttributes & AriaAttributes & {
+export type IntrinsicElementAttributes<ElementType extends Element> = ElementProperties<ElementType> & EventAttributes<ElementType> & DataAttributes & AriaAttributes & {
   children?: unknown
   class?: MatrixValue<string | null | undefined>
   className?: MatrixValue<string | null | undefined>

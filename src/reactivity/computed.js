@@ -177,6 +177,7 @@ function createComputed(fn, options) {
   }
 
   api.dispose = dispose
+  source.read = api.peek
 
   const scope = getCurrentScope()
   if (scope) {

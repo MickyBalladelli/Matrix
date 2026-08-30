@@ -5,6 +5,7 @@ Benchmarks are local measurements, not unit tests. Keep the machine, Node versio
 ## Commands
 
 ```bash
+npx playwright install chromium firefox webkit
 npm run bench
 npm run bench:memory
 npm run test:performance
@@ -13,6 +14,15 @@ npm run bench:record -- --phase baseline --label <version>
 ```
 
 `npm run test:performance` checks the Node reactivity budget and both browser benchmark pages in Chromium, Firefox, and WebKit. Use `--browser` or `MATRIX_BROWSER` to isolate one browser, and `--fixture bench/extended.browser.html` to run only the extended page.
+
+The recorder accepts the same browser and fixture selectors:
+
+```bash
+npm run bench:record -- --phase baseline --label <version> --browser chromium
+```
+
+Install all three engines for release measurements so paired history runs use
+the same browser set.
 
 `bench/memory.js` runs with `--expose-gc` and reports the idle heap, allocation, and retained heap for 1,000 Signals and 1,000 Effects. Browser memory fields are included when the browser exposes `performance.memory`.
 

@@ -107,6 +107,8 @@ function createSignal(initialValue, options) {
     _source: source
   }
 
+  source.read = api.peek
+
   const scope = getCurrentScope()
   if (scope) {
     scope.add(api.dispose)

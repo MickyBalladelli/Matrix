@@ -22,6 +22,7 @@ This runs the unit, type, browser, performance, package, and size checks, then
 Before the final audit, record a release baseline:
 
 ```sh
+npx playwright install chromium firefox webkit
 npm run bench:record -- --phase baseline --label <version>
 ```
 

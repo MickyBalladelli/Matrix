@@ -39,7 +39,16 @@ for (const definition of definitions) {
   available.push({ ...definition, code })
 }
 
-const browser = await chromium.launch()
+let browser
+try {
+  browser = await chromium.launch()
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error)
+  if (/Executable doesn't exist|executable.*not found/i.test(message)) {
+    throw new Error('Playwright chromium is not installed. Run: npx playwright install chromium')
+  }
+  throw error
+}
 const results = []
 
 try {

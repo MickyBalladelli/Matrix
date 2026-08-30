@@ -289,7 +289,7 @@ export function createDevtools(options = {}) {
 
 function readSourceValue(source, options) {
   try {
-    return serializeValue(source.kind === 'computed' ? source.peek() : source.peek(), options)
+    return serializeValue(source.read(), options)
   } catch (error) {
     return `[unavailable: ${error.message}]`
   }

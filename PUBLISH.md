@@ -29,14 +29,23 @@ Keep the previous performance run in the repository, then run the full local
 gate:
 
 ```bash
-npm run bench:record -- --phase baseline --label 0.1.0
+npx playwright install chromium firefox webkit
+npm run bench:record -- --phase baseline --label 1.0.0
 npm run verify:release
-npm run release:check -- 0.1.0
+npm run release:check -- 1.0.0
 ```
 
 `release:check` verifies stable metadata, dated release notes, stable install
 docs, the packed Matrix installation, the `create-matrix-app` package, and the
 optional tag. Add `--require-tag` after creating the tag.
+
+For a local Chromium-only measurement, use:
+
+```bash
+MATRIX_BROWSER=chromium npm run bench:record -- --phase baseline --label 1.0.0 --browser chromium
+```
+
+Do not use a one-browser run as the final release baseline.
 
 ## Create the tag and release notes
 

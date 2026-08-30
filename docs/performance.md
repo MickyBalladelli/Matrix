@@ -30,7 +30,9 @@ Reproducible benchmarks live in `bench/reactivity.js`, `bench/memory.js`, `bench
 
 `npm run size` bundles each public entry with esbuild, records minified, gzip,
 and Brotli bytes, and fails when the checked-in Brotli budget plus its fixed 2%
-tolerance is exceeded. The JSON output includes the exact limit used.
+tolerance is exceeded. The current release baselines are 17,000 bytes for the
+full runtime and 9,000 bytes for utilities; other entry budgets remain
+unchanged. The JSON output includes the exact limit used.
 
 `npm run bench` measures the reactive engine and `npm run bench:memory` measures Node heap baselines with forced GC. `npm run bench:compare` runs the small browser comparison protocol against Matrix and any installed React, Vue, and Preact packages. Keep results in a release note with the machine, browser or Node version used. External comparisons are directional, not universal rankings.
 

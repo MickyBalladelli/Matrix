@@ -1,4 +1,5 @@
-import { html, mount, signal } from '../../src/index.js'
+import { html, mount } from '../../src/dom/index.js'
+import { signal } from '../../src/reactivity/index.js'
 
 export function createAdapter(container) {
   const count = signal(0)

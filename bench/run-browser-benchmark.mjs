@@ -59,6 +59,18 @@ const server = createServer(async (request, response) => {
   }
 })
 
+async function launchBrowser(browserName, browserType) {
+  try {
+    return await browserType.launch()
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (/Executable doesn't exist|executable.*not found/i.test(message)) {
+      throw new Error(`Playwright ${browserName} is not installed. Run: npx playwright install ${browserName}`)
+    }
+    throw error
+  }
+}
+
 await new Promise(resolveListen => server.listen(0, '127.0.0.1', resolveListen))
 const { port } = server.address()
 
@@ -73,7 +85,7 @@ function checkMeasurements(measurements) {
 
 try {
   for (const [browserName, browserType] of selectedBrowsers) {
-    const browser = await browserType.launch()
+    const browser = await launchBrowser(browserName, browserType)
     try {
       for (const fixture of fixtures) {
         const page = await browser.newPage()

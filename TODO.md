@@ -153,14 +153,14 @@ Published on npm: @mickyballadelli/matrix@next
 ## Platform Support: Verification and Documentation
 
 ### Browser compatibility
-- [ ] Test on Safari 15+
-- [ ] Test on Chrome 90+, Firefox 88+, Edge 90+
-- [ ] Test on iOS Safari
-- [ ] Test on mobile Chrome (Android)
-- [ ] Verify touch event handling
-- [ ] Test Dark Mode support
-- [ ] Test RTL language rendering (with `dir="rtl"`)
-- [ ] Document minimum versions for each browser
+- [x] Test on Safari 15+
+- [x] Test on Chrome 90+, Firefox 88+, Edge 90+
+- [x] Test on iOS Safari
+- [x] Test on mobile Chrome (Android)
+- [x] Verify touch event handling
+- [x] Test Dark Mode support
+- [x] Test RTL language rendering (with `dir="rtl"`)
+- [x] Document minimum versions for each browser
 
 ### Node.js compatibility
 - [ ] Verify signal/computed work in Node (no DOM)

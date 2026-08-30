@@ -50,7 +50,7 @@ Cover equality, dynamic dependencies, sync and microtask flushing, nested scopes
 
 ## Browser tests for the DOM
 
-Browser fixtures should run against a real document. The local runner serves the repository over HTTP, opens the DOM, integration, example, and edge-case fixtures, and waits for `window.__MATRIX_TEST_RESULT__ === 'passed'`.
+Browser fixtures should run against a real document. The local runner serves the repository over HTTP, opens the DOM, integration, example, edge-case, and compatibility fixtures, and waits for `window.__MATRIX_TEST_RESULT__ === 'passed'`.
 
 Add an assertion to `test/dom.browser.js` when testing rendering, event modifiers, form controls, styles, components, router behavior, or browser-only APIs. Keep the fixture deterministic and write a clear assertion message:
 

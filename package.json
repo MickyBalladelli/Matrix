@@ -24,6 +24,14 @@
     "node": ">=18"
   },
   "packageManager": "npm@12.0.2",
+  "browserslist": [
+    "Chrome >= 90",
+    "Firefox >= 88",
+    "Edge >= 90",
+    "Safari >= 15",
+    "ios_saf >= 15",
+    "and_chr >= 90"
+  ],
   "types": "./types/index.d.ts",
   "sideEffects": false,
   "files": [
@@ -43,6 +51,11 @@
     "size": "node scripts/size.mjs",
     "test": "node --test test/*.test.js",
     "test:browser": "node test/run-browser-tests.mjs",
+    "test:browser:compat": "node test/run-browser-tests.mjs --fixture test/browser-compatibility.browser.html",
+    "test:browser:dark": "node test/run-browser-tests.mjs --color-scheme dark --fixture test/browser-compatibility.browser.html",
+    "test:browser:ios": "node test/run-browser-tests.mjs --browser webkit --device \"iPhone 13\" --fixture test/browser-compatibility.browser.html",
+    "test:browser:android": "node test/run-browser-tests.mjs --browser chromium --device \"Pixel 5\" --fixture test/browser-compatibility.browser.html",
+    "test:browser:edge": "node test/run-browser-tests.mjs --browser chromium --channel msedge --fixture test/browser-compatibility.browser.html",
     "test:performance": "node scripts/check-performance.mjs",
     "test:types": "tsc -p tsconfig.json",
     "test:package": "node scripts/package-smoke.mjs",

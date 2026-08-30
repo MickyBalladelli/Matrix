@@ -241,7 +241,11 @@ export function createPerformanceTimeline(options = {}) {
 
 export function createDevtools(options = {}) {
   const globalName = options.globalName ?? '__MATRIX_DEVTOOLS__'
-  const timeline = createPerformanceTimeline(options.timeline ?? {})
+  const inspectOptions = {
+    ...options,
+    redact: options.redact ?? true
+  }
+  const timeline = createPerformanceTimeline(options.timeline ?? { redact: inspectOptions.redact })
   let disposed = false
 
   const api = {
@@ -251,17 +255,17 @@ export function createDevtools(options = {}) {
         version: 1,
         capturedAt: new Date().toISOString(),
         config: { ...getRuntimeConfig() },
-        components: inspectComponents(options),
-        sources: inspectSources(options),
+        components: inspectComponents(inspectOptions),
+        sources: inspectSources(inspectOptions),
         effects: inspectEffects(),
-        routers: inspectRouters(options),
+        routers: inspectRouters(inspectOptions),
         timeline: timeline.snapshot()
       }
     },
-    components: () => inspectComponents(options),
-    sources: () => inspectSources(options),
+    components: () => inspectComponents(inspectOptions),
+    sources: () => inspectSources(inspectOptions),
     effects: inspectEffects,
-    routers: () => inspectRouters(options),
+    routers: () => inspectRouters(inspectOptions),
     timeline,
     dispose() {
       if (disposed) {

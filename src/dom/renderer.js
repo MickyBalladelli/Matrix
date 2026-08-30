@@ -267,10 +267,23 @@ function arrayState(values, parent, before, ownerScope) {
   }
 }
 
+function formatTextContent(value) {
+  if (value === true || value === false) {
+    return String(value)
+  }
+
+  return value
+}
+
 function renderDynamicValue(value, parent, before, ownerScope) {
   const bindingScope = createScope(ownerScope)
+  const ownerComponent = getCurrentComponent()
   let childState = emptyState()
   let disposed = false
+
+  const renderOwnedValue = nextValue => ownerComponent
+    ? runWithComponent(ownerComponent, () => renderResolvedValue(nextValue, parent, before, bindingScope))
+    : renderResolvedValue(nextValue, parent, before, bindingScope)
 
   const state = {
     get firstNode() {
@@ -309,7 +322,7 @@ function renderDynamicValue(value, parent, before, ownerScope) {
   }
 
   function replace(nextValue) {
-    const nextState = renderResolvedValue(nextValue, parent, before, bindingScope)
+    const nextState = renderOwnedValue(nextValue)
     try {
       childState.dispose()
     } catch (error) {
@@ -323,12 +336,12 @@ function renderDynamicValue(value, parent, before, ownerScope) {
     bindingScope.run(() => {
       if (isReactiveValue(value)) {
         effect(() => {
-          const nextValue = value.value
+          const nextValue = formatTextContent(value.value)
           replace(nextValue)
           emitDebugEvent({ type: 'dom:update', kind: 'content', parent, source: value })
         })
       } else {
-        replace(value)
+        replace(formatTextContent(value))
       }
     })
   } catch (error) {
@@ -873,11 +886,16 @@ function renderTemplate(result, parent, before, ownerScope) {
 
 function renderKeyedList(result, parent, before, ownerScope) {
   const listScope = createScope(ownerScope)
+  const ownerComponent = getCurrentComponent()
   const start = parent.ownerDocument.createComment('matrix:keyed:start')
   const end = parent.ownerDocument.createComment('matrix:keyed:end')
   const statesByKey = new Map()
   let orderedStates = []
   let disposed = false
+
+  const runOwned = callback => ownerComponent
+    ? runWithComponent(ownerComponent, callback)
+    : callback()
 
   parent.insertBefore(start, before)
   parent.insertBefore(end, before)
@@ -974,9 +992,9 @@ function renderKeyedList(result, parent, before, ownerScope) {
   try {
     listScope.run(() => {
       if (isReactiveValue(result.items)) {
-        effect(() => reconcile(result.items.value))
+        effect(() => runOwned(() => reconcile(result.items.value)))
       } else {
-        reconcile(result.items)
+        runOwned(() => reconcile(result.items))
       }
     })
   } catch (error) {

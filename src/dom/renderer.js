@@ -780,9 +780,17 @@ function renderTemplate(result, parent, before, ownerScope) {
 
   warnUnoptimizedBindings(result, textBindings, attributeBindings)
 
-  parent.insertBefore(fragment, end)
-
   try {
+    templateScope.run(() => {
+      for (const binding of attributeBindings) {
+        if (URL_ATTRIBUTES.has(binding.name.toLowerCase())) {
+          bindAttribute(binding.element, binding, result.values, templateScope)
+        }
+      }
+    })
+
+    parent.insertBefore(fragment, end)
+
     templateScope.run(() => {
       for (const binding of textBindings) {
         dynamicStates.push(renderDynamicValue(
@@ -794,7 +802,9 @@ function renderTemplate(result, parent, before, ownerScope) {
       }
 
       for (const binding of attributeBindings) {
-        bindAttribute(binding.element, binding, result.values, templateScope)
+        if (!URL_ATTRIBUTES.has(binding.name.toLowerCase())) {
+          bindAttribute(binding.element, binding, result.values, templateScope)
+        }
       }
     })
   } catch (error) {

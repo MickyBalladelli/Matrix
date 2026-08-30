@@ -63,6 +63,7 @@ export function mountEcommerceApp(container, options = {}) {
   const sort = signal('featured')
   const cart = signal([])
   const categories = computed(() => [...new Set((products.data.value ?? []).map(product => product.category))])
+  const categoryOptions = computed(() => categories.value.map(value => html`<option value=${value}>${value}</option>`))
   const filteredProducts = computed(() => {
     const query = search.value.trim().toLowerCase()
     return [...(products.data.value ?? [])]
@@ -87,7 +88,7 @@ export function mountEcommerceApp(container, options = {}) {
       <header class="store-header"><div><p>Matrix official example</p><h1>Reactive Supply</h1></div><span class="cart-badge" data-store-cart>${cartCount} item(s)</span></header>
       <section class="store-controls">
         <label>Search <input data-store-search placeholder="Find a product" use:bind=${search}></label>
-        <label>Category <select data-store-category .value=${category} @change=${event => category.value = event.currentTarget.value}><option value="all">All categories</option>${categories.value.map(value => html`<option value=${value}>${value}</option>`)}</select></label>
+        <label>Category <select data-store-category .value=${category} @change=${event => category.value = event.currentTarget.value}><option value="all">All categories</option>${categoryOptions}</select></label>
         <label>Sort <select data-store-sort .value=${sort} @change=${event => sort.value = event.currentTarget.value}><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="price-high">Price: high to low</option></select></label>
       </section>
       <p data-store-status aria-live="polite">${computed(() => products.loading.value ? 'Loading catalog…' : `${filteredProducts.value.length} product(s)`)}</p>
@@ -109,6 +110,7 @@ export function mountEcommerceApp(container, options = {}) {
       app.unmount()
       products.dispose()
       categories.dispose()
+      categoryOptions.dispose()
       filteredProducts.dispose()
       productCards.dispose()
       cartCount.dispose()

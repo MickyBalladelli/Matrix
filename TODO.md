@@ -202,22 +202,22 @@ Published on npm: @mickyballadelli/matrix@next
 ## Ecosystem: Examples and Patterns
 
 ### Official examples
-- [ ] Create "Blog" example with markdown rendering
-- [ ] Create "Admin Dashboard" with complex data tables
-- [ ] Create "E-commerce" example with filters and sorting
-- [ ] Create "SPA" example showcasing full Matrix capabilities
-- [ ] Create "Server Integration" example with real API
-- [ ] Each example with Vite, TypeScript, complete tests
-- [ ] Add example template to create-matrix-app
+- [x] Create "Blog" example with markdown rendering
+- [x] Create "Admin Dashboard" with complex data tables
+- [x] Create "E-commerce" example with filters and sorting
+- [x] Create "SPA" example showcasing full Matrix capabilities
+- [x] Create "Server Integration" example with real API
+- [x] Each example with Vite, TypeScript, complete tests
+- [x] Add example template to create-matrix-app
 
 ### Extension patterns
-- [ ] Example: Custom form input component with validation
-- [ ] Example: State persistence plugin (localStorage)
-- [ ] Example: Analytics plugin for tracking
-- [ ] Example: Error reporting plugin
-- [ ] Example: A11y audit plugin
-- [ ] Example: Performance monitoring plugin
-- [ ] Create "Plugins" documentation section
+- [x] Example: Custom form input component with validation
+- [x] Example: State persistence plugin (localStorage)
+- [x] Example: Analytics plugin for tracking
+- [x] Example: Error reporting plugin
+- [x] Example: A11y audit plugin
+- [x] Example: Performance monitoring plugin
+- [x] Create "Plugins" documentation section
 
 ### Integration patterns
 - [ ] Pattern: Loading and caching data with resource()

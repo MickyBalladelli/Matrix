@@ -59,8 +59,14 @@ The repository also includes complete feature examples:
 - `examples/notes`: searchable notes, a complex editor form, and local storage persistence.
 - `examples/dashboard`: keyed metric components, filters, async data, and performance timeline capture.
 - `examples/chat`: WebSocket lifecycle and message handling with an offline echo transport.
+- `examples/blog`: safe Markdown rendering and article search.
+- `examples/admin-dashboard`: filterable, sortable, paginated data tables.
+- `examples/e-commerce`: catalog filters, sorting, and cart state.
+- `examples/spa`: router, forms, resources, keyed lists, lifecycle, and themes.
+- `examples/server-integration`: a real `fetch` API adapter with an injectable local test adapter.
+- `examples/extensions`: custom form inputs, state persistence, analytics, error reporting, accessibility audits, and performance monitoring plugins.
 
-Each example has a README with local run, test, and performance notes. The example browser fixture runs with `npm run test:browser -- --fixture test/examples.browser.html`.
+Each example has a README with local run and test notes. Run the official example fixture with `npm run test:browser:official-examples`.
 
 ## Independent Matrix + Vite app
 
@@ -138,6 +144,7 @@ Developer guides:
 - [DevTools integration](docs/devtools.md)
 - [Testing strategies](docs/testing-strategies.md)
 - [Accessibility checklist](docs/accessibility.md)
+- [Plugins and extension patterns](docs/plugins.md)
 
 ## API
 

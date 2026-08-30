@@ -1,0 +1,17 @@
+{
+  "name": "matrix-spa-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@mickyballadelli/matrix": "file:../.."
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^8.2.2"
+  }
+}

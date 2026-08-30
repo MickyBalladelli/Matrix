@@ -8,6 +8,12 @@ cd my-app
 npm run dev
 ```
 
+Start from the official Blog example instead:
+
+```bash
+npx create-matrix-app@next my-blog --example blog
+```
+
 Until the first npm release is published, that command returns E404.
 
 The generated app contains:
@@ -18,6 +24,8 @@ vite.config.js
 src/main.jsx
 src/style.css
 ```
+
+The `--example blog` option replaces `src/main.jsx` with a small reactive blog starter while keeping the same Vite setup.
 
 JSX is enabled automatically through Matrix's JSX runtime:
 

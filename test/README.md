@@ -4,6 +4,8 @@
 - `dom.browser.html` loads `dom.browser.js` in a browser and checks rendering, components, styles, forms and keyed lists.
 - `integration.browser.html` loads `integration.browser.js` and checks complete forms, guarded routing, redirects, themes, nested composition, mixed syntax, SVG namespaces, touch gestures, and keyboard flows.
 - `examples.browser.html` loads `examples.browser.js` and checks the Shopping Cart, Notes, Dashboard, and Chat applications through their adapter boundaries.
+- `official-examples.browser.html` loads `official-examples.browser.js` and checks the Blog, Admin Dashboard, E-commerce, SPA, and Server Integration examples with deterministic adapters.
+- `extension-patterns.browser.html` loads `extension-patterns.browser.js` and checks custom form inputs, persistence, analytics, error reporting, accessibility audits, and performance monitoring.
 - `edge-cases.browser.html` loads `edge-cases.browser.js` and checks cleanup-time updates, lifecycle navigation, async form unmounts, style timing, long text, and rapid mount cycles.
 - `browser-compatibility.browser.html` loads `browser-compatibility.browser.js` and checks ESM/runtime features, touch events, dark-mode media queries, and RTL rendering.
 - `security.browser.html` loads `security.browser.js` and checks deterministic XSS payloads, entity escaping, SVG namespaces, CSS input validation, router boundaries, form sanitization, resource URLs, and plugin cleanup.
@@ -11,7 +13,7 @@
 - `runtime-compatibility/basic.mjs` is a portable smoke fixture for Node, Bun, and Deno. `runtime-compatibility/cloudflare-worker.mjs` is the module Worker fixture.
 - `npm run test:types` checks all public declarations and strict JSX fixtures, including read-only props, reactive props, intrinsic attributes and event names.
 
-`npm run test:browser` serves the repository and runs all browser suites in Chromium, Firefox, and WebKit. Use `--fixture test/examples.browser.html` to run only the example fixture. The HTML files can still be opened directly for a manual pass.
+`npm run test:browser` serves the repository and runs all browser suites in Chromium, Firefox, and WebKit. Use `--fixture test/examples.browser.html`, `--fixture test/official-examples.browser.html`, or `--fixture test/extension-patterns.browser.html` to run one example fixture. The HTML files can still be opened directly for a manual pass.
 
 Pass `--browser chromium`, `--browser firefox` or `--browser webkit` to run one engine. Compatibility runs also accept `--device`, `--channel`, and `--color-scheme` for iOS/Android emulation, Edge, and dark-mode checks.
 

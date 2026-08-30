@@ -8,9 +8,12 @@ import { fileURLToPath } from 'node:url'
 const args = process.argv.slice(2)
 const showHelp = args.includes('--help') || args.includes('-h')
 const skipInstall = args.includes('--no-install')
-const projectArgument = args.find(argument => !argument.startsWith('-'))
+const parsedArguments = parseArguments(args)
+const projectArgument = parsedArguments.project
+const requestedExample = parsedArguments.example
 const cliDirectory = dirname(fileURLToPath(import.meta.url))
 const matrixDirectory = resolve(cliDirectory, '..')
+const exampleTemplates = new Set(['blog'])
 
 if (showHelp) {
   printHelp()
@@ -19,6 +22,11 @@ if (showHelp) {
 
 if (!projectArgument) {
   console.error('Give app directory. Example: npx create-matrix-app my-app')
+  process.exit(1)
+}
+
+if (requestedExample && !exampleTemplates.has(requestedExample)) {
+  console.error(`Unknown example "${requestedExample}". Use one of: ${[...exampleTemplates].join(', ')}`)
   process.exit(1)
 }
 
@@ -32,6 +40,12 @@ if (!packageName) {
 
 await prepareTargetDirectory(targetDirectory)
 await cp(resolve(cliDirectory, 'template'), targetDirectory, { recursive: true })
+if (requestedExample) {
+  await cp(
+    resolve(cliDirectory, 'example-templates', requestedExample, 'main.jsx'),
+    resolve(targetDirectory, 'src/main.jsx')
+  )
+}
 
 const packagePath = resolve(targetDirectory, 'package.json')
 const packageJson = JSON.parse(await readFile(packagePath, 'utf8'))
@@ -70,7 +84,31 @@ function printHelp() {
 
 Options:
   --no-install  Create files without running npm install
+  --example <name>  Start from an official example template (blog)
   --help        Show this help`)
+}
+
+function parseArguments(argumentsList) {
+  let project
+  let example
+
+  for (let index = 0; index < argumentsList.length; index += 1) {
+    const argument = argumentsList[index]
+    if (argument === '--example') {
+      example = argumentsList[index + 1]
+      index += 1
+      continue
+    }
+    if (argument.startsWith('--example=')) {
+      example = argument.slice('--example='.length)
+      continue
+    }
+    if (!argument.startsWith('-') && !project) {
+      project = argument
+    }
+  }
+
+  return { project, example }
 }
 
 async function prepareTargetDirectory(directory) {

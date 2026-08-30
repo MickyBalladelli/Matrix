@@ -465,12 +465,27 @@ export function getActiveRouters() {
 }
 
 export function routerView(router, fallback = null) {
+  let cachedView
+  let cachedParamsKey
+  let cachedResult = fallback
+
   return computed(() => {
     const route = router.current.value
     if (!route || typeof route.view !== 'function') {
+      cachedView = undefined
+      cachedParamsKey = undefined
+      cachedResult = fallback
       return fallback
     }
 
-    return component(route.view, { ...route.params, route })
+    const paramsKey = JSON.stringify(route.params ?? {})
+    if (cachedView === route.view && cachedParamsKey === paramsKey) {
+      return cachedResult
+    }
+
+    cachedView = route.view
+    cachedParamsKey = paramsKey
+    cachedResult = component(route.view, { ...route.params, route })
+    return cachedResult
   })
 }

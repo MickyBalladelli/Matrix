@@ -1,6 +1,6 @@
 import { effect } from '../reactivity/effect.js'
 import { createScope } from '../reactivity/scope.js'
-import { getCurrentScope, runWithRenderState } from '../reactivity/context.js'
+import { getCurrentScope, runWithObserver, runWithRenderState } from '../reactivity/context.js'
 import {
   getAttributeMarkerParts,
   getCompiledTemplate,
@@ -321,8 +321,22 @@ function renderDynamicValue(value, parent, before, ownerScope) {
     }
   }
 
+  let lastValue
+  let hasValue = false
+
   function replace(nextValue) {
-    const nextState = renderOwnedValue(nextValue)
+    if (hasValue && Object.is(lastValue, nextValue)) {
+      return
+    }
+
+    if (typeof childState.canUpdate === 'function' && childState.canUpdate(nextValue)) {
+      childState.update(nextValue)
+      lastValue = nextValue
+      hasValue = true
+      return
+    }
+
+    const nextState = runWithObserver(null, () => renderOwnedValue(nextValue))
     try {
       childState.dispose()
     } catch (error) {
@@ -330,6 +344,8 @@ function renderDynamicValue(value, parent, before, ownerScope) {
       throw error
     }
     childState = nextState
+    lastValue = nextValue
+    hasValue = true
   }
 
   try {
@@ -339,6 +355,9 @@ function renderDynamicValue(value, parent, before, ownerScope) {
           const nextValue = formatTextContent(value.value)
           replace(nextValue)
           emitDebugEvent({ type: 'dom:update', kind: 'content', parent, source: value })
+        }, {
+          name: 'render-dynamic-value',
+          warnOnDependencyChange: false
         })
       } else {
         replace(formatTextContent(value))
@@ -732,7 +751,9 @@ function bindAttribute(element, binding, values, scope) {
       throw new Error('Empty property name in Matrix template')
       }
       assertSafeUrl(property, String(value ?? ''))
-      element[property] = value
+      if (element[property] !== value) {
+        element[property] = value
+      }
       return
     }
 

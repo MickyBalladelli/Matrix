@@ -552,6 +552,32 @@ largeItems.value = [...largeItems.value].reverse()
 assert(host.textContent.startsWith('9999'), 'A large keyed list must reorder')
 largeListApp.unmount()
 
+// Dynamic values must not track signals read while rendering their content.
+// Without clearing the observer, onMount writes to those signals loop forever.
+{
+  const tick = signal(0)
+  function Canvas() {
+    tick.value
+    onMount(() => {
+      tick.value += 1
+    })
+    return html`<canvas data-tick="1"></canvas>`
+  }
+  const layer = computed(() => component(Canvas))
+  const loopHost = document.createElement('div')
+  host.append(loopHost)
+  let loopError
+  try {
+    mount(() => html`${layer}`, loopHost)
+  } catch (error) {
+    loopError = error
+  }
+  assert(!loopError, `Dynamic content render must not loop (${loopError?.message ?? 'ok'})`)
+  assert(loopHost.querySelector('canvas'), 'Canvas content must mount once')
+  assert(tick.peek() === 1, 'onMount may write once without retriggering the dynamic-value effect')
+  loopHost.remove()
+}
+
 document.body.dataset.matrixTests = 'passed'
 window.__MATRIX_TEST_RESULT__ = 'passed'
 devtools.dispose()

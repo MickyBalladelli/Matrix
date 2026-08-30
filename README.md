@@ -107,6 +107,18 @@ const App = () => html`
 mount(App, document.querySelector('#app'))
 ```
 
+## Documentation
+
+- [10-minute tutorial](docs/tutorial-10-minute.md)
+- [Common patterns](docs/common-patterns.md)
+- [Form validation](docs/forms.md)
+- [Advanced routing](docs/routing-advanced.md)
+- [CSS scoping](docs/css-scoping.md)
+- [Performance tips](docs/performance-tips.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Security](docs/security.md)
+- [API reference](docs/api.md)
+
 ## API
 
 - `signal(value)` creates reactive state with `.value`, `.set()`, `.update()` and `.subscribe()`.

@@ -37,14 +37,14 @@ Published on npm: @mickyballadelli/matrix@next
 ## Documentation: Completeness and Clarity
 
 ### Core documentation
-- [ ] Write "Common Patterns" guide (conditional rendering, loops, forms, async loading)
-- [ ] Write "Performance Tips" guide with anti-patterns to avoid
-- [ ] Write "Troubleshooting" guide with diagnostic steps for common issues
-- [ ] Write "Security" guide covering XSS, CSRF, dynamic URLs, raw HTML
-- [ ] Create "10-Minute Tutorial" starting from npm install
-- [ ] Expand "Form Validation" example with error messages, async validation, complex fields
-- [ ] Add "Routing Advanced" guide covering guards, transitions, deep linking
-- [ ] Add "CSS Scoping" guide with complex selector examples and limitations
+- [x] Write "Common Patterns" guide (conditional rendering, loops, forms, async loading)
+- [x] Write "Performance Tips" guide with anti-patterns to avoid
+- [x] Write "Troubleshooting" guide with diagnostic steps for common issues
+- [x] Write "Security" guide covering XSS, CSRF, dynamic URLs, raw HTML
+- [x] Create "10-Minute Tutorial" starting from npm install
+- [x] Expand "Form Validation" example with error messages, async validation, complex fields
+- [x] Add "Routing Advanced" guide covering guards, transitions, deep linking
+- [x] Add "CSS Scoping" guide with complex selector examples and limitations
 
 ### Developer experience docs
 - [ ] Document all error messages with causes and solutions

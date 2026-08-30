@@ -1,0 +1,87 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  background: #10131a;
+  color: #e9edf5;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  box-sizing: border-box;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+.muted {
+  color: #aab3c4;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.card,
+section {
+  border: 1px solid #303848;
+  border-radius: 0.7rem;
+  background: #181d27;
+}
+
+.card {
+  padding: 1rem;
+}
+
+.card strong {
+  display: block;
+  font-size: 1.25rem;
+  margin-top: 0.35rem;
+}
+
+section {
+  overflow-x: auto;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+th,
+td {
+  padding: 0.65rem;
+  border-bottom: 1px solid #303848;
+  text-align: left;
+}
+
+th {
+  color: #aab3c4;
+  font-size: 0.85rem;
+}
+
+a {
+  color: #8cc8ff;
+}
+
+.good {
+  color: #8ee6a6;
+}
+
+.bad {
+  color: #ff9f9f;
+}

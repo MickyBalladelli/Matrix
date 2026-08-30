@@ -23,6 +23,7 @@ const brotliBudgets = {
   utils: 7000,
   plugins: 1500
 }
+const budgetTolerance = 0.02
 
 const measurements = {}
 
@@ -42,14 +43,16 @@ for (const [name, relativeEntry] of Object.entries(entries)) {
     minifiedBytes: source.length,
     gzipBytes: gzipSync(source).length,
     brotliBytes: brotliCompressSync(source).length,
-    brotliBudget: brotliBudgets[name]
+    brotliBudget: brotliBudgets[name],
+    budgetTolerance,
+    brotliLimit: Math.ceil(brotliBudgets[name] * (1 + budgetTolerance))
   }
 }
 
 console.log(JSON.stringify(measurements, null, 2))
 
 const failures = Object.entries(measurements)
-  .filter(([name, measurement]) => measurement.brotliBytes > brotliBudgets[name])
+  .filter(([, measurement]) => measurement.brotliBytes > measurement.brotliLimit)
 
 if (failures.length > 0) {
   throw new Error(`Matrix size budget exceeded: ${failures.map(([name]) => name).join(', ')}`)

@@ -12,6 +12,16 @@ npm run verify:release
 
 `verify:release` runs unit tests, strict type tests, Chromium/Firefox/WebKit tests, performance budgets, package smoke tests and size budgets. `npm publish` runs the same gate through `prepublishOnly`.
 
+Record the release performance snapshot before publishing:
+
+```bash
+npm run bench:record -- --phase baseline --label <version>
+```
+
+This writes raw results to `bench/performance-history.json`. Keep the matching
+human note in `docs/performance-history.md` and publish `bench/dashboard.html`
+with the history file when public tracking is wanted.
+
 Bump the version only when needed. Do not let npm create a git commit or tag:
 
 ```bash

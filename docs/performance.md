@@ -28,7 +28,9 @@ Reproducible benchmarks live in `bench/reactivity.js`, `bench/memory.js`, `bench
 
 `npm run test:performance` checks both benchmarks against the budgets in `bench/performance-budgets.js`. It runs the DOM benchmark in Chromium, Firefox and WebKit and fails on a budget regression. Set `MATRIX_BROWSER` or pass `--browser` to the browser benchmark runner when investigating one engine.
 
-`npm run size` bundles each public entry with esbuild, records minified, gzip, and Brotli bytes, and fails when a checked-in Brotli budget is exceeded.
+`npm run size` bundles each public entry with esbuild, records minified, gzip,
+and Brotli bytes, and fails when the checked-in Brotli budget plus its fixed 2%
+tolerance is exceeded. The JSON output includes the exact limit used.
 
 `npm run bench` measures the reactive engine and `npm run bench:memory` measures Node heap baselines with forced GC. `npm run bench:compare` runs the small browser comparison protocol against Matrix and any installed React, Vue, and Preact packages. Keep results in a release note with the machine, browser or Node version used. External comparisons are directional, not universal rankings.
 
@@ -40,4 +42,12 @@ Use these profiles when investigating a regression:
 - Reactive service: 100 subscribers receiving 1,000 updates.
 - Long-lived app: idle and retained heap after 1,000 Signals and Effects.
 
-Release notes must record `npm run size`, `npm run bench`, Node version, browser version, operating system, and hardware. Compare a release with the previous published version before changing a budget.
+`npm run bench:record -- --phase baseline --label <version>` stores a complete
+snapshot in `bench/performance-history.json`. Use paired `before` and `after`
+runs for optimization work; see `bench/optimization-log.md`. The static
+`bench/dashboard.html` page displays the history for public tracking.
+
+Release notes must record `npm run size`, `npm run bench`, Node version, browser
+version, operating system, and hardware. Use `docs/performance-history.md` for
+the detailed note. Compare a release with the previous published version
+before changing a budget.

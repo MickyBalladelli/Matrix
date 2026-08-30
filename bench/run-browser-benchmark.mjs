@@ -10,7 +10,8 @@ const root = resolve(fileURLToPath(new URL('../', import.meta.url)))
 const contentTypes = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8'
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8'
 }
 const browserTypes = { chromium, firefox, webkit }
 const browserFlagIndex = process.argv.indexOf('--browser')
@@ -26,6 +27,8 @@ const fixtures = requestedFixture
   ? [requestedFixture.replace(/^\/+/, '')]
   : ['bench/dom.browser.html', 'bench/extended.browser.html']
 const check = process.argv.includes('--check')
+const jsonOutput = process.argv.includes('--json')
+const reports = []
 
 if (selectedBrowsers.some(([, browserType]) => !browserType)) {
   throw new Error(`Unknown browser "${requestedBrowser}". Use one of: ${Object.keys(browserTypes).join(', ')}${suggestClosest(requestedBrowser, Object.keys(browserTypes))}`)
@@ -99,7 +102,11 @@ try {
             throw new Error(`DOM performance budget exceeded: ${budgetFailures.join('; ')}`)
           }
 
-          console.log(JSON.stringify({ browser: browserName, fixture, ...result }, null, 2))
+          const report = { browser: browserName, fixture, ...result }
+          reports.push(report)
+          if (!jsonOutput) {
+            console.log(JSON.stringify(report, null, 2))
+          }
         } finally {
           await page.close()
         }
@@ -110,4 +117,8 @@ try {
   }
 } finally {
   await new Promise((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose()))
+}
+
+if (jsonOutput) {
+  console.log(JSON.stringify(reports))
 }

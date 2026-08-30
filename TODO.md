@@ -136,11 +136,11 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Document performance profiles by use case
 
 ### Regression prevention
-- [ ] Lock size budgets with 2% tolerance before release
-- [ ] Add performance regression history tracking
-- [ ] Benchmark before and after every optimization attempt
-- [ ] Keep detailed performance notes for each version
-- [ ] Create public performance dashboard or tracking
+- [x] Lock size budgets with 2% tolerance before release
+- [x] Add performance regression history tracking
+- [x] Benchmark before and after every optimization attempt
+- [x] Keep detailed performance notes for each version
+- [x] Create public performance dashboard or tracking
 
 ### Optimization opportunities
 - [ ] Consider lazy compilation of templates on first use

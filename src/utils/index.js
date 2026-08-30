@@ -13,3 +13,4 @@ export {
 } from './debug.js'
 export { bindInput, createForm } from './form.js'
 export { createRouter, routerView } from './router.js'
+export { runInWorker } from './worker.js'

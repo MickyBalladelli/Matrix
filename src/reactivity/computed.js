@@ -1,5 +1,6 @@
 import { getCurrentRenderState, getCurrentScope, runWithObserver } from './context.js'
 import { createSource, disposeSource, notifySource, subscribeSource, trackSource } from './source.js'
+import { isBatching, scheduleJob } from './scheduler.js'
 
 export function computed(fn, options = {}) {
   const renderState = getCurrentRenderState()
@@ -43,6 +44,21 @@ function createComputed(fn, options) {
   let dirty = true
   let computing = false
   let disposed = false
+  let invalidationScheduled = false
+
+  function notifyIfChanged() {
+    invalidationScheduled = false
+    if (disposed || !dirty || (source.subscribers.size === 0 && source.listeners.size === 0)) {
+      return
+    }
+
+    const previousValue = value
+    recompute()
+
+    if (!equals(previousValue, value)) {
+      notifySource(source, value, previousValue)
+    }
+  }
 
   const observer = {
     id: `computed-${source.id}`,
@@ -59,12 +75,15 @@ function createComputed(fn, options) {
         return
       }
 
-      const previousValue = value
-      recompute()
-
-      if (!equals(previousValue, value)) {
-        notifySource(source, value, previousValue)
+      if (isBatching()) {
+        if (!invalidationScheduled) {
+          invalidationScheduled = true
+          scheduleJob(notifyIfChanged)
+        }
+        return
       }
+
+      notifyIfChanged()
     }
   }
 

@@ -31,6 +31,10 @@ batch(() => {
 
 Do not use `batch` to hide a long-running asynchronous operation. Keep the callback synchronous and batch only the state writes that belong together.
 
+`batch()` also coalesces invalidation of subscribed Computeds. A Computed is
+recalculated once after the batch reaches the end, then its subscribers update
+from the final values.
+
 ## Keep lists stable
 
 Use `keyed(items, getKey)` for lists that reorder or update individual items. Keys must be unique and stable across renders.
@@ -54,6 +58,20 @@ const cardVars = cssVariables({ '--card-color': accent })
 ```
 
 Styles are injected once per document. Call `disposeStyle` for a temporary stylesheet that will never be used again.
+
+For CPU-heavy, self-contained browser work, use `runInWorker(task, value)` so
+the main thread stays responsive:
+
+```js
+const total = await runInWorker(
+  values => values.reduce((sum, value) => sum + value, 0),
+  values
+)
+```
+
+Worker tasks are serialized and cannot capture local variables. Pass needed
+data as the second argument and use `AbortController` when the result becomes
+irrelevant.
 
 ## Dispose temporary work
 

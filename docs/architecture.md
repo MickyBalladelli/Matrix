@@ -17,7 +17,7 @@ The reactive engine does not know about the DOM. The renderer knows about signal
 - `src/jsx-runtime.js`: optional JSX adapter built on the DOM renderer and component runtime.
 - `src/components`: props, functional components and lifecycle.
 - `src/styles`: scoped CSS, global CSS and reactive variables.
-- `src/utils`: router, forms, async resources and debugging.
+- `src/utils`: router, forms, async resources, worker offloading and debugging.
 - `src/plugins.js`: four small extension points for tools and integrations.
 - `src/utils/debug.js`: runtime snapshots, component/source/effect/router inspectors, and performance timelines for DevTools.
 
@@ -33,7 +33,10 @@ Effects are synchronous by default. `flush: 'microtask'` and `batch()` group upd
 
 ## Rendering
 
-`html` keeps static content in an `HTMLTemplateElement` cached by template identity and document. Expressions become text or attribute markers. Each marker receives its own binding and Effect.
+`html` compiles static content lazily on first use. The `HTMLTemplateElement` and
+binding paths are cached by template identity and document, so later mounts
+clone the template without rescanning every node. Expressions become text or
+attribute markers. Each marker receives its own binding and Effect.
 
 Dynamic data is escaped when it becomes text. A DOM node, template, component, list or signal is rendered without rebuilding its parent.
 
@@ -51,7 +54,13 @@ Child `onMount` hooks run before the parent's because the child is inserted duri
 
 ## Styling
 
-`css` computes a stable identifier for a definition and prefixes selectors with a `data-matrix-scope` attribute. Styles are injected once per document. `cssVariables` updates only the CSS properties driven by a signal.
+`css` computes a stable identifier for a definition and prefixes selectors with a `data-matrix-scope` attribute. Static tagged CSS definitions reuse their
+compiled scoped definition, and styles are injected once per document.
+`cssVariables` updates only the CSS properties driven by a signal.
+
+The router indexes routes by their first static path segment while preserving
+declaration order for dynamic and catch-all routes. Large route tables avoid
+testing unrelated static patterns.
 
 Plugins can observe the renderer, scheduler, log events and style manager. They are optional and are not required on the normal rendering path.
 

@@ -247,6 +247,33 @@ test('batch regroupe les Effects', () => {
   assert.equal(runs, 2)
 })
 
+test('batch regroupe aussi les invalidations de Computed', () => {
+  const source = signal(0)
+  let computedRuns = 0
+  let effectRuns = 0
+  const doubled = computed(() => {
+    computedRuns += 1
+    return source.value * 2
+  })
+  const stop = effect(() => {
+    doubled.value
+    effectRuns += 1
+  })
+
+  batch(() => {
+    source.value = 1
+    source.value = 2
+  })
+
+  assert.equal(computedRuns, 2)
+  assert.equal(effectRuns, 2)
+  assert.equal(doubled.value, 4)
+
+  stop()
+  doubled.dispose()
+  source.dispose()
+})
+
 test('un scope dispose ses Effects', () => {
   const scope = createScope()
   const source = signal(0)

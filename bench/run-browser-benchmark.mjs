@@ -25,7 +25,7 @@ const requestedFixture = process.env.MATRIX_BENCHMARK_FIXTURE
   ?? (fixtureFlagIndex >= 0 ? process.argv[fixtureFlagIndex + 1] : undefined)
 const fixtures = requestedFixture
   ? [requestedFixture.replace(/^\/+/, '')]
-  : ['bench/dom.browser.html', 'bench/extended.browser.html']
+  : ['bench/dom.browser.html', 'bench/extended.browser.html', 'bench/optimization.browser.html']
 const check = process.argv.includes('--check')
 const jsonOutput = process.argv.includes('--json')
 const reports = []

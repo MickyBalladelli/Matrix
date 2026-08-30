@@ -66,6 +66,18 @@ export function createScope(parent?: Scope): Scope
 export function disposeScope(scope: Scope): void
 export function onCleanup(cleanup: () => void): () => void
 
+export interface WorkerOptions {
+  name?: string
+  transfer?: Transferable[]
+  signal?: AbortSignal
+}
+
+export function runInWorker<Input, Output>(
+  task: (value: Input) => Output | Promise<Output>,
+  value: Input,
+  options?: WorkerOptions
+): Promise<Output>
+
 export interface TemplateResult {
   readonly strings: TemplateStringsArray
   readonly values: unknown[]

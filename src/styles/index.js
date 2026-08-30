@@ -3,6 +3,8 @@ import { isReactiveValue } from '../utils/reactive.js'
 import { emitPlugin } from '../plugins.js'
 
 const styleCache = new WeakMap()
+const staticScopedStyles = new WeakMap()
+const staticGlobalStyles = new WeakMap()
 const STYLE_RESULT = Symbol('matrix.style.result')
 const VARIABLES_RESULT = Symbol('matrix.variables.result')
 
@@ -146,6 +148,27 @@ function scopeRules(source, scopeSelector, insideKeyframes = false) {
   return output
 }
 
+function createScopedStyle(cssText) {
+  const id = `matrix-${hash(cssText)}`
+  const scopeSelector = `[data-matrix-scope="${id}"]`
+
+  return {
+    [STYLE_RESULT]: true,
+    id,
+    scopeSelector,
+    cssText: scopeRules(cssText, scopeSelector)
+  }
+}
+
+function createGlobalStyle(cssText) {
+  return {
+    [STYLE_RESULT]: true,
+    id: `matrix-global-${hash(cssText)}`,
+    scopeSelector: null,
+    cssText
+  }
+}
+
 function getDocumentStyleCache(document) {
   let cache = styleCache.get(document)
   if (!cache) {
@@ -176,27 +199,34 @@ function ensureStyleElement(document, definition) {
 
 export function css(strings, ...values) {
   const cssText = typeof strings === 'string' ? strings : interpolate(strings, values)
-  const id = `matrix-${hash(cssText)}`
-  const scopeSelector = `[data-matrix-scope="${id}"]`
+  if (typeof strings !== 'string' && values.length === 0) {
+    const cached = staticScopedStyles.get(strings)
+    if (cached) {
+      return cached
+    }
 
-  return {
-    [STYLE_RESULT]: true,
-    id,
-    scopeSelector,
-    cssText: scopeRules(cssText, scopeSelector)
+    const definition = createScopedStyle(cssText)
+    staticScopedStyles.set(strings, definition)
+    return definition
   }
+
+  return createScopedStyle(cssText)
 }
 
 export function globalCss(strings, ...values) {
   const cssText = typeof strings === 'string' ? strings : interpolate(strings, values)
-  const id = `matrix-global-${hash(cssText)}`
+  if (typeof strings !== 'string' && values.length === 0) {
+    const cached = staticGlobalStyles.get(strings)
+    if (cached) {
+      return cached
+    }
 
-  return {
-    [STYLE_RESULT]: true,
-    id,
-    scopeSelector: null,
-    cssText
+    const definition = createGlobalStyle(cssText)
+    staticGlobalStyles.set(strings, definition)
+    return definition
   }
+
+  return createGlobalStyle(cssText)
 }
 
 export function cssVariables(values) {

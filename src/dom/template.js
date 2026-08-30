@@ -99,7 +99,7 @@ function collectTextBindings(fragment) {
     const match = TEXT_MARKER.exec(node.data)
     if (match) {
       bindings.push({
-        node,
+        path: getNodePath(node, fragment),
         index: Number(match[1])
       })
     }
@@ -138,7 +138,7 @@ function collectAttributeBindings(fragment) {
       }
 
       bindings.push({
-        element,
+        path: getNodePath(element, fragment),
         name: attribute.name,
         parts
       })
@@ -146,6 +146,33 @@ function collectAttributeBindings(fragment) {
   }
 
   return bindings
+}
+
+function getNodePath(node, root) {
+  const path = []
+  let current = node
+
+  while (current !== root) {
+    const parent = current.parentNode
+    if (!parent) {
+      throw new Error('Matrix could not index a compiled template node')
+    }
+
+    path.unshift([...parent.childNodes].indexOf(current))
+    current = parent
+  }
+
+  return path
+}
+
+export function getTemplateNode(root, path) {
+  let node = root
+
+  for (const index of path) {
+    node = node.childNodes[index]
+  }
+
+  return node
 }
 
 export function getCompiledTemplate(strings, document) {

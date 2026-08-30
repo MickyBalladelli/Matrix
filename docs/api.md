@@ -137,7 +137,10 @@ Creates a reactive keyed list. Keys must be unique. Items that keep their key ar
 - `use:vars=${cssVariables({...})}`: applies CSS variables.
 - `use:bind=${signal}`: creates a two-way form binding.
 
-`delegate(element, event, selector, handler)` delegates an event to a container.
+`delegate(element, event, selector, handler, options?)` delegates an event to a
+container. Delegations sharing the same container, event, capture, and passive
+options share one native listener, which keeps large lists cheap. `once` and
+`signal` remain per-delegation options.
 
 Dynamic `javascript:`, `vbscript:` and `data:` URLs are rejected in URL attributes and properties.
 
@@ -247,6 +250,7 @@ Hooks are synchronous and run on the application update path. Keep them cheap an
 - `routerView(router, fallback)` turns the current route into a view.
 - `createForm(initialValues, validators, options)` provides fields, values, errors, valid, validate, validateField, inspectField, inspect and reset.
 - `resource(loader, options)` provides status, data, error, loading, reload and dispose.
+- `runInWorker(task, value, options?)` runs a self-contained function in a browser Worker and returns a Promise. The function is serialized, so it cannot close over application variables. Pass an `AbortSignal` to cancel it and `transfer` for transferable values.
 - `createLogger`, `watchDebug`, `inspect`, the DevTools inspectors, `createPerformanceTimeline`, and `setDevtoolsHook` support debugging.
 
 ### Router guard and redirect example

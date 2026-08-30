@@ -143,12 +143,12 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Create public performance dashboard or tracking
 
 ### Optimization opportunities
-- [ ] Consider lazy compilation of templates on first use
-- [ ] Evaluate event delegation efficiency for large DOMs
-- [ ] Profile CSS scoping implementation for bottlenecks
-- [ ] Analyze router matching performance with large route tables
-- [ ] Consider worker offloading for CPU-heavy operations
-- [ ] Evaluate signal batching effectiveness
+- [x] Consider lazy compilation of templates on first use
+- [x] Evaluate event delegation efficiency for large DOMs
+- [x] Profile CSS scoping implementation for bottlenecks
+- [x] Analyze router matching performance with large route tables
+- [x] Consider worker offloading for CPU-heavy operations
+- [x] Evaluate signal batching effectiveness
 
 ## Platform Support: Verification and Documentation
 

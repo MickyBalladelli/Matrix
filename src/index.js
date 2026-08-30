@@ -54,6 +54,7 @@ export {
   inspectRouters,
   inspectSources,
   resource,
+  runInWorker,
   routerView,
   setDevtoolsHook,
   watchDebug

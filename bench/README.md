@@ -40,6 +40,7 @@ performance dashboard. Human explanations for each release belong in
 | Theme updates | `css variables update 100` | style binding cost |
 | Many subscribers | `rapid signal updates 100 subscribers` | repeated notification cost |
 | Small interactive UI | `bench/compare.mjs` | directional mount/update/unmount comparison |
+| Runtime optimizations | `bench/optimization.browser.html` | template, delegation, CSS, router, batching, and worker paths |
 
 `npm run size` allows a fixed 2% tolerance over each checked-in Brotli budget
 and reports the exact limit in its JSON output. Do not change a budget from one

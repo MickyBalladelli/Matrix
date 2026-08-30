@@ -4,6 +4,7 @@ import { getCurrentScope, runWithRenderState } from '../reactivity/context.js'
 import {
   getAttributeMarkerParts,
   getCompiledTemplate,
+  getTemplateNode,
   html,
   isTemplateResult
 } from './template.js'
@@ -766,44 +767,16 @@ function renderTemplate(result, parent, before, ownerScope) {
   parent.insertBefore(end, before)
 
   const fragment = compiled.template.content.cloneNode(true)
-  const textBindings = []
+  const textBindings = compiled.textBindings.map(({ path, index }) => ({
+    node: getTemplateNode(fragment, path),
+    index
+  }))
   const dynamicStates = []
-  const walker = document.createTreeWalker(fragment, 128)
-  let node = walker.nextNode()
-
-  while (node) {
-    const match = /^matrix:text:(\d+)$/.exec(node.data)
-    if (match) {
-      textBindings.push({ node, index: Number(match[1]) })
-    }
-    node = walker.nextNode()
-  }
-
-  const attributeBindings = []
-  const descendants = fragment.querySelectorAll('*')
-  for (const element of descendants) {
-    for (const attribute of [...element.attributes]) {
-      const matches = [...attribute.value.matchAll(/__MATRIX_ATTR_(\d+)__/g)]
-      if (matches.length === 0) {
-        continue
-      }
-
-      const parts = []
-      let cursor = 0
-      for (const match of matches) {
-        if (match.index > cursor) {
-          parts.push(attribute.value.slice(cursor, match.index))
-        }
-        parts.push({ index: Number(match[1]) })
-        cursor = match.index + match[0].length
-      }
-      if (cursor < attribute.value.length) {
-        parts.push(attribute.value.slice(cursor))
-      }
-
-      attributeBindings.push({ element, name: attribute.name, parts })
-    }
-  }
+  const attributeBindings = compiled.attributeBindings.map(({ path, name, parts }) => ({
+    element: getTemplateNode(fragment, path),
+    name,
+    parts
+  }))
 
   warnUnoptimizedBindings(result, textBindings, attributeBindings)
 

@@ -43,8 +43,38 @@ function compileRoute(pattern) {
   }
 }
 
-function matchRoute(routes, path) {
-  for (const route of routes) {
+function createRouteIndex(routeRecords) {
+  const staticRoutes = new Map()
+  const dynamicRoutes = []
+
+  for (const record of routeRecords) {
+    const firstSegment = normalizePath(record.route.path).split('/')[1] || '/'
+    if (firstSegment.startsWith(':') || firstSegment.startsWith('*')) {
+      dynamicRoutes.push(record)
+      continue
+    }
+
+    const bucket = staticRoutes.get(firstSegment) ?? []
+    bucket.push(record)
+    staticRoutes.set(firstSegment, bucket)
+  }
+
+  return { staticRoutes, dynamicRoutes }
+}
+
+function matchRoute(routeIndex, path) {
+  const firstSegment = normalizePath(path).split('/')[1] || '/'
+  const staticRoutes = routeIndex.staticRoutes.get(firstSegment) ?? []
+  let staticIndex = 0
+  let dynamicIndex = 0
+
+  while (staticIndex < staticRoutes.length || dynamicIndex < routeIndex.dynamicRoutes.length) {
+    const staticRoute = staticRoutes[staticIndex]
+    const dynamicRoute = routeIndex.dynamicRoutes[dynamicIndex]
+    const record = !dynamicRoute || (staticRoute && staticRoute.index < dynamicRoute.index)
+      ? staticRoutes[staticIndex++]
+      : routeIndex.dynamicRoutes[dynamicIndex++]
+    const route = record.route
     const match = route.matcher.expression.exec(path)
     if (!match) {
       continue
@@ -203,10 +233,15 @@ function createRouterState(routeDefinitions, options) {
     })
   }
 
-  const routes = routeDefinitions.map(route => ({
-    ...route,
-    matcher: compileRoute(route.path)
+  const routeRecords = routeDefinitions.map((route, index) => ({
+    index,
+    route: {
+      ...route,
+      matcher: compileRoute(route.path)
+    }
   }))
+  const routes = routeRecords.map(record => record.route)
+  const routeIndex = createRouteIndex(routeRecords)
   const base = normalizeBase(options.base)
   const stripBase = pathname => (base && (pathname === base || pathname.startsWith(`${base}/`)))
     ? pathname.slice(base.length) || '/'
@@ -214,7 +249,7 @@ function createRouterState(routeDefinitions, options) {
   const path = signal(normalizePath(stripBase(window.location.pathname)))
   const search = signal(window.location.search)
   const hash = signal(window.location.hash)
-  const current = computed(() => matchRoute(routes, path.value))
+  const current = computed(() => matchRoute(routeIndex, path.value))
   let started = false
   let disposed = false
   let warnedUnstartedNavigation = false
@@ -292,7 +327,7 @@ function createRouterState(routeDefinitions, options) {
 
     const normalizedPath = normalizePath(stripBase(url.pathname))
     const target = `${base}${normalizedPath}${url.search}${url.hash}`
-    const destination = matchRoute(routes, normalizedPath)
+    const destination = matchRoute(routeIndex, normalizedPath)
 
     if (isDevelopment() && !destination && !warnedUnmatchedPaths.has(normalizedPath)) {
       warnedUnmatchedPaths.add(normalizedPath)

@@ -6,6 +6,10 @@ let microtaskQueued = false
 
 const pendingJobs = new Set()
 
+export function isBatching() {
+  return batchDepth > 0
+}
+
 function queueFlush() {
   if (microtaskQueued) {
     return

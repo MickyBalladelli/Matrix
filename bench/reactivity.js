@@ -1,5 +1,5 @@
 import { performance } from 'node:perf_hooks'
-import { effect, signal } from '../src/index.js'
+import { batch, computed, effect, signal } from '../src/index.js'
 import { performanceBudgets } from './performance-budgets.js'
 
 const count = signal(0)
@@ -52,6 +52,31 @@ for (const unsubscribe of rapidStops) {
 }
 rapidSource.dispose()
 
+const batchFirst = signal(0)
+const batchSecond = signal(0)
+let batchedEffectRuns = 0
+let batchedComputedRuns = 0
+const batchTotal = computed(() => {
+  batchedComputedRuns += 1
+  return batchFirst.value + batchSecond.value
+})
+const stopBatchedEffect = effect(() => {
+  batchTotal.value
+  batchedEffectRuns += 1
+})
+const batchStart = performance.now()
+batch(() => {
+  for (let index = 0; index < 1000; index += 1) {
+    batchFirst.value = index + 1
+    batchSecond.value = index + 1
+  }
+})
+const batchElapsed = performance.now() - batchStart
+stopBatchedEffect()
+batchTotal.dispose()
+batchFirst.dispose()
+batchSecond.dispose()
+
 const result = {
   iterations,
   reads,
@@ -64,6 +89,14 @@ const result = {
     subscribers: 100,
     reads: rapidReads,
     milliseconds: Number(rapidElapsed.toFixed(3))
+  },
+  batching: {
+    updates: 1000,
+    writes: 2000,
+    effectRuns: batchedEffectRuns,
+    computedRuns: batchedComputedRuns,
+    milliseconds: Number(batchElapsed.toFixed(3)),
+    coalesced: batchedEffectRuns === 2 && batchedComputedRuns === 2
   }
 }
 
@@ -81,6 +114,10 @@ if (process.argv.includes('--check')) {
   ))
   if (slowSubscriber) {
     failures.push(`subscriber update for ${slowSubscriber.size} effects took ${slowSubscriber.milliseconds}ms`)
+  }
+
+  if (!result.batching.coalesced) {
+    failures.push('batch did not coalesce reactive updates')
   }
 
   if (failures.length > 0) {

@@ -15,7 +15,11 @@ import {
 import { ERROR_BOUNDARY_RESULT, getCurrentComponent } from '../components/context.js'
 import { applyCssVariables, applyStyle } from '../styles/index.js'
 import { bindInput } from '../utils/form.js'
-import { emitDebugEvent } from '../utils/debug.js'
+import {
+  emitDebugEvent,
+  registerComponentDebug,
+  unregisterComponentDebug
+} from '../utils/debug.js'
 import { describeValue, warnDiagnostic } from '../utils/diagnostics.js'
 import { getRuntimeConfig } from '../config.js'
 import { warnDevelopment } from '../utils/development.js'
@@ -26,6 +30,14 @@ const PROPERTY_PREFIX = '.'
 const BOOLEAN_PREFIX = '?'
 const URL_ATTRIBUTES = new Set(['href', 'src', 'action', 'formaction', 'poster', 'xlink:href'])
 const warnedBindingTemplates = new WeakSet()
+
+function emitComponentDebugEvent(event) {
+  try {
+    emitDebugEvent(event)
+  } catch {
+    // Inspector hooks must not change component rendering behavior.
+  }
+}
 
 function isReactiveValue(value) {
   return Boolean(
@@ -379,6 +391,7 @@ function renderComponent(result, parent, before, ownerScope) {
     isMounted: false,
     invalidOutputWarnings: new Set()
   }
+  registerComponentDebug(instance)
 
   let output
   let outputState
@@ -400,10 +413,23 @@ function renderComponent(result, parent, before, ownerScope) {
     }
     instance.mountCallbacks.length = 0
     instance.isMounted = true
+    emitComponentDebugEvent({
+      type: 'component:mount',
+      id: instance.devtoolsId,
+      name: result.render.name || 'anonymous',
+      parentId: parentInstance?.devtoolsId ?? null
+    })
   } catch (error) {
     disposeQuietly(outputState)
     disposeQuietly(renderScope)
     disposeQuietly(componentScope)
+    emitComponentDebugEvent({
+      type: 'component:error',
+      id: instance.devtoolsId,
+      name: result.render.name || 'anonymous',
+      message: error?.message ?? String(error)
+    })
+    unregisterComponentDebug(instance)
 
     const contextualError = addComponentErrorContext(error, result)
 
@@ -467,6 +493,12 @@ function renderComponent(result, parent, before, ownerScope) {
         renderScope = nextRenderScope
         result = nextResult
         instance.result = nextResult
+        emitComponentDebugEvent({
+          type: 'component:update',
+          id: instance.devtoolsId,
+          name: nextResult.render.name || 'anonymous',
+          parentId: instance.parent?.devtoolsId ?? null
+        })
       } catch (error) {
         disposeQuietly(nextOutputState)
         disposeQuietly(nextRenderScope)
@@ -490,6 +522,11 @@ function renderComponent(result, parent, before, ownerScope) {
       return true
     },
     dispose() {
+      if (instance.disposed) {
+        return
+      }
+
+      instance.disposed = true
       let firstError
 
       try {
@@ -506,6 +543,17 @@ function renderComponent(result, parent, before, ownerScope) {
 
       try {
         componentScope.dispose()
+      } catch (error) {
+        firstError ??= error
+      }
+
+      unregisterComponentDebug(instance)
+      try {
+        emitComponentDebugEvent({
+          type: 'component:unmount',
+          id: instance.devtoolsId,
+          name: instance.result.render.name || 'anonymous'
+        })
       } catch (error) {
         firstError ??= error
       }

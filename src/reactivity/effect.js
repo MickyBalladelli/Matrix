@@ -5,6 +5,7 @@ import { suggestClosest } from '../utils/suggestions.js'
 
 const MAX_RUNS_PER_UPDATE = 100
 const activeEffects = new Set()
+let nextEffectId = 1
 
 export function effect(fn, options = {}) {
   if (typeof fn !== 'function') {
@@ -30,6 +31,7 @@ export function effect(fn, options = {}) {
   let scheduled = false
 
   const observer = {
+    id: `effect-${nextEffectId++}`,
     kind: 'effect',
     name: options.name ?? '',
     dependencies,

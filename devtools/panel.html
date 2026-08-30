@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Matrix DevTools</title>
+    <link rel="stylesheet" href="panel.css">
+  </head>
+  <body>
+    <header>
+      <h1>Matrix</h1>
+      <button id="refresh">Refresh</button>
+      <button id="timeline">Start timeline</button>
+    </header>
+    <p id="status">Looking for <code>window.__MATRIX_DEVTOOLS__</code>…</p>
+    <main>
+      <section>
+        <h2>Component tree</h2>
+        <pre id="components"></pre>
+      </section>
+      <section>
+        <h2>Signals and Computeds</h2>
+        <pre id="sources"></pre>
+      </section>
+      <section>
+        <h2>Effect dependencies</h2>
+        <pre id="effects"></pre>
+      </section>
+      <section>
+        <h2>Router state</h2>
+        <pre id="routers"></pre>
+      </section>
+      <section>
+        <h2>Performance timeline</h2>
+        <pre id="timeline-output"></pre>
+      </section>
+    </main>
+    <script src="panel.js"></script>
+  </body>
+</html>

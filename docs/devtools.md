@@ -1,6 +1,19 @@
 # DevTools integration
 
-Matrix does not ship a browser extension. It exposes small hooks so an application, browser extension, or local inspector can collect the events it needs without changing the rendering path.
+Matrix exposes a runtime inspector bridge for the unpacked browser extension in `devtools/`, a VS Code helper in `vscode/`, and custom local inspectors. These tools collect the same snapshots without changing the rendering path.
+
+## Install the browser panel
+
+Call `createDevtools()` once during application startup:
+
+```js
+import { configure, createDevtools } from '@mickyballadelli/matrix'
+
+configure({ development: true })
+createDevtools({ redact: true, recordTimeline: false })
+```
+
+Load the repository's `devtools/` directory as an unpacked extension in Chrome, Edge, or Firefox. Open the page's browser DevTools and select the Matrix panel. The panel reads `window.__MATRIX_DEVTOOLS__` and shows the component tree, Signals and Computeds, Effect dependency edges, router state, and timeline events.
 
 ## Plugin extension points
 
@@ -80,6 +93,26 @@ const stop = usePlugin({
 
 The receiver should validate `event.origin`, accept only the expected `source`, and avoid displaying sensitive signal values. Prefer `redact: true` with `watchDebug` when values are not needed.
 
+## Runtime inspector API
+
+`createDevtools()` returns a small protocol object and also exposes it as `window.__MATRIX_DEVTOOLS__` by default:
+
+```js
+const devtools = createDevtools({ redact: false })
+
+console.log(devtools.components())
+console.log(devtools.sources())
+console.log(devtools.effects())
+console.log(devtools.routers())
+
+devtools.timeline.start()
+// Interact with the app.
+devtools.timeline.stop()
+console.table(devtools.timeline.snapshot())
+```
+
+Use `redact: true` when values contain user data. Timeline entries keep event metadata and safe value previews, never DOM nodes or live reactive objects.
+
 ## Source inspection
 
 Use `inspect(source)` for one source and `inspectEffects()` for active Effect names and dependency counts. These helpers are best for an in-app debug panel or a paused console session. Call cleanup functions when the panel closes.
@@ -99,10 +132,14 @@ setDevtoolsHook(event => {
 
 It does not receive scheduler or style plugin events. Use `usePlugin` when an inspector needs those points too.
 
+## VS Code
+
+The `vscode/` directory contains a local extension that evaluates the same bridge through the active JavaScript debug session. Install it from that directory, start a browser debug session, then run **Matrix: Inspect Active Page** from the Command Palette. Use the two Matrix timeline commands to record an interaction.
+
 ## Extension boundaries
 
 - Plugins observe Matrix; they do not replace the scheduler or renderer.
 - Do not mutate event objects or internal source objects.
 - Do not keep DOM nodes or Signal objects alive after the inspected view is unmounted.
 - Disable instrumentation in production unless the data and overhead are understood.
-- There is no stable component-tree or time-travel protocol in this alpha. Build inspectors around the documented hooks and expect event payloads to evolve before 1.0.
+- The inspector snapshot protocol is versioned as `1`; treat fields as additive and expect changes before 1.0.

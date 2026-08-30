@@ -19,6 +19,7 @@ The reactive engine does not know about the DOM. The renderer knows about signal
 - `src/styles`: scoped CSS, global CSS and reactive variables.
 - `src/utils`: router, forms, async resources and debugging.
 - `src/plugins.js`: four small extension points for tools and integrations.
+- `src/utils/debug.js`: runtime snapshots, component/source/effect/router inspectors, and performance timelines for DevTools.
 
 The exports declared in `package.json` are public. The npm artifact uses `dist`; files below other paths are internal and may change between alpha versions.
 

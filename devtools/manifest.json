@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Matrix DevTools",
+  "version": "0.1.0",
+  "description": "Inspect Matrix components, reactive sources, Effects, routers, and performance events.",
+  "devtools_page": "devtools.html",
+  "permissions": [],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "matrix-devtools@example.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}

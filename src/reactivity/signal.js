@@ -1,4 +1,4 @@
-import { createSource, notifySource, subscribeSource, trackSource } from './source.js'
+import { createSource, disposeSource, notifySource, subscribeSource, trackSource } from './source.js'
 import { getCurrentRenderState, getCurrentScope } from './context.js'
 
 export function signal(initialValue, options = {}) {
@@ -89,6 +89,7 @@ function createSignal(initialValue, options) {
       disposed = true
       source.subscribers.clear()
       source.listeners.clear()
+      disposeSource(source)
     },
 
     get name() {

@@ -1,0 +1,39 @@
+:root {
+  color-scheme: light dark;
+  font: 12px/1.4 system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 12px;
+}
+
+header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+}
+
+h1 {
+  font-size: 16px;
+  margin: 0 auto 0 0;
+}
+
+section {
+  border-top: 1px solid #8886;
+  margin-top: 12px;
+  padding-top: 8px;
+}
+
+h2 {
+  font-size: 13px;
+  margin: 0 0 4px;
+}
+
+pre {
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+}

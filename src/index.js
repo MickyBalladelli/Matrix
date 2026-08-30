@@ -43,11 +43,16 @@ export { css, cssVariables, defaultTokens, disposeStyle, globalCss, theme, token
 export { usePlugin } from './plugins.js'
 export {
   bindInput,
+  createDevtools,
   createForm,
   createRouter,
   createLogger,
+  createPerformanceTimeline,
   inspect,
+  inspectComponents,
   inspectEffects,
+  inspectRouters,
+  inspectSources,
   resource,
   routerView,
   setDevtoolsHook,

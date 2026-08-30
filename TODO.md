@@ -86,13 +86,13 @@ Published on npm: @mickyballadelli/matrix@next
 - [x] Add performance warnings for unoptimized bindings
 
 ### DevTools enhancements
-- [ ] Create browser DevTools extension (Chrome/Firefox/Edge)
-- [ ] Add component tree inspector in DevTools
-- [ ] Add signal/computed inspection panel
-- [ ] Add effect dependency visualizer
-- [ ] Add router state inspector
-- [ ] Add performance timeline recording
-- [ ] Create VS Code debugging integration for Matrix components
+- [x] Create browser DevTools extension (Chrome/Firefox/Edge)
+- [x] Add component tree inspector in DevTools, I want to see which component is in which file.
+- [x] Add signal/computed inspection panel
+- [x] Add effect dependency visualizer
+- [x] Add router state inspector
+- [x] Add performance timeline recording
+- [x] Create VS Code debugging integration for Matrix components
 
 ## Testing: Comprehensive Coverage
 

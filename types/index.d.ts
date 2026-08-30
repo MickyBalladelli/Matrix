@@ -230,8 +230,95 @@ export function resource<T, Args extends unknown[] = unknown[]>(loader: (...args
 export function setDevtoolsHook(hook?: (event: Record<string, unknown>) => void): void
 export function watchDebug(source: Reactive<unknown>, name?: string, logger?: Console, options?: { warnAfter?: number; redact?: boolean }): () => void
 export function inspect(source: Reactive<unknown>): Record<string, unknown>
-export function inspectEffects(): Array<{ name: string; dependencies: number }>
+export function inspectComponents(options?: { redact?: boolean }): ComponentDebugNode[]
+export function inspectSources(options?: { redact?: boolean }): SourceDebugSnapshot[]
+export function inspectEffects(): EffectDebugSnapshot[]
+export function inspectRouters(options?: { redact?: boolean }): RouterDebugSnapshot[]
+export function createPerformanceTimeline(options?: { maxEntries?: number; redact?: boolean }): PerformanceTimeline
+export function createDevtools(options?: DevtoolsOptions): Devtools
 export function createLogger(options?: { enabled?: boolean; logger?: Console; warnAfter?: number; redact?: boolean }): {
   watch(source: Reactive<unknown>, name?: string): () => void
   inspect(source: Reactive<unknown>): Record<string, unknown>
+}
+
+export interface ComponentDebugNode {
+  id: string
+  name: string
+  parentId: string | null
+  mounted: boolean
+  errorBoundary: boolean
+  props: unknown
+  sourceLocation: string
+  children: ComponentDebugNode[]
+}
+
+export interface SourceDebugSnapshot {
+  id: string
+  kind: 'signal' | 'computed'
+  name: string
+  value: unknown
+  subscribers: Array<{ id?: string; kind?: string; name?: string }>
+  listeners: number
+  effectSubscribers: Array<{ id?: string; name?: string }>
+}
+
+export interface EffectDebugSnapshot {
+  id: string
+  name: string
+  dependencies: number
+  dependencyIds: string[]
+  dependencyNames: string[]
+}
+
+export interface RouterDebugSnapshot {
+  id: string
+  started: boolean
+  path: string
+  search: string
+  hash: string
+  current: unknown
+  routes: Array<{ path: string; hasView: boolean; redirect: unknown }>
+}
+
+export interface PerformanceTimelineEntry {
+  at: number
+  point: 'renderer' | 'scheduler' | 'logger' | 'style'
+  type: string
+  data: Record<string, unknown>
+}
+
+export interface PerformanceTimeline {
+  readonly isRecording: boolean
+  start(): void
+  stop(): void
+  clear(): void
+  snapshot(): PerformanceTimelineEntry[]
+  dispose(): void
+}
+
+export interface DevtoolsOptions {
+  globalName?: string | null
+  redact?: boolean
+  recordTimeline?: boolean
+  timeline?: { maxEntries?: number; redact?: boolean }
+}
+
+export interface Devtools {
+  readonly version: 1
+  snapshot(): {
+    version: 1
+    capturedAt: string
+    config: Record<string, unknown>
+    components: ComponentDebugNode[]
+    sources: SourceDebugSnapshot[]
+    effects: EffectDebugSnapshot[]
+    routers: RouterDebugSnapshot[]
+    timeline: PerformanceTimelineEntry[]
+  }
+  components(): ComponentDebugNode[]
+  sources(): SourceDebugSnapshot[]
+  effects(): EffectDebugSnapshot[]
+  routers(): RouterDebugSnapshot[]
+  timeline: PerformanceTimeline
+  dispose(): void
 }

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { batch, component, computed, configure, createForm, createScope, effect, getRuntimeConfig, onCleanup, signal, usePlugin } from '../src/index.js'
+import { batch, component, computed, configure, createDevtools, createForm, createScope, effect, getRuntimeConfig, onCleanup, signal, usePlugin } from '../src/index.js'
 
 test('signal et effect suivent une dépendance', () => {
   const count = signal(0)
@@ -148,6 +148,28 @@ test('le mode développement signale les lectures et mutations non réactives', 
 
   assert(events.some(event => event.type === 'reactivity:untracked-read' && event.name === 'outside'), 'Une lecture hors contexte réactif doit produire un diagnostic')
   assert(events.some(event => event.type === 'component:prop-mutation'), 'Une mutation de props doit produire un diagnostic')
+})
+
+test('les DevTools exposent le graphe réactif et la timeline locale', () => {
+  const devtools = createDevtools({ globalName: null, redact: false })
+  const source = signal(1, { name: 'source' })
+  const doubled = computed(() => source.value * 2, { name: 'doubled' })
+  const stop = effect(() => doubled.value, { name: 'panelEffect' })
+
+  const snapshot = devtools.snapshot()
+  assert(snapshot.sources.some(item => item.name === 'source' && item.value === 1), 'Les DevTools doivent inspecter les Signals')
+  assert(snapshot.sources.some(item => item.name === 'doubled' && item.value === 2), 'Les DevTools doivent inspecter les Computeds')
+  assert(snapshot.effects.some(item => item.name === 'panelEffect' && item.dependencyNames.includes('doubled')), 'Les DevTools doivent exposer les dépendances des Effects')
+
+  devtools.timeline.start()
+  source.value = 2
+  devtools.timeline.stop()
+  assert(devtools.timeline.snapshot().some(item => item.point === 'scheduler'), 'La timeline doit enregistrer les événements du scheduler')
+
+  stop()
+  doubled.dispose()
+  source.dispose()
+  devtools.dispose()
 })
 
 test('computed est cache et se recalcule après invalidation', () => {

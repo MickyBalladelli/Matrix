@@ -1,12 +1,27 @@
 import { track } from './context.js'
 
+let nextSourceId = 1
+const reactiveSources = new Set()
+
 export function createSource(kind, name = '') {
-  return {
+  const source = {
+    id: `source-${nextSourceId++}`,
     kind,
     name,
     subscribers: new Set(),
     listeners: new Set()
   }
+
+  reactiveSources.add(source)
+  return source
+}
+
+export function disposeSource(source) {
+  reactiveSources.delete(source)
+}
+
+export function getReactiveSources() {
+  return [...reactiveSources]
 }
 
 export function trackSource(source) {

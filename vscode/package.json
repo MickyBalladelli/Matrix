@@ -1,0 +1,33 @@
+{
+  "name": "matrix-devtools",
+  "displayName": "Matrix DevTools",
+  "description": "Inspect Matrix components and reactive state from an active JavaScript debug session.",
+  "version": "0.1.0",
+  "publisher": "mickyballadelli",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCommand:matrix.inspect",
+    "onCommand:matrix.timeline.start",
+    "onCommand:matrix.timeline.stop"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "matrix.inspect",
+        "title": "Matrix: Inspect Active Page"
+      },
+      {
+        "command": "matrix.timeline.start",
+        "title": "Matrix: Start Performance Timeline"
+      },
+      {
+        "command": "matrix.timeline.stop",
+        "title": "Matrix: Stop Performance Timeline"
+      }
+    ]
+  }
+}

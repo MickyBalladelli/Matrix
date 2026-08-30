@@ -1,5 +1,5 @@
 import { getCurrentRenderState, getCurrentScope, runWithObserver } from './context.js'
-import { createSource, notifySource, subscribeSource, trackSource } from './source.js'
+import { createSource, disposeSource, notifySource, subscribeSource, trackSource } from './source.js'
 
 export function computed(fn, options = {}) {
   const renderState = getCurrentRenderState()
@@ -45,6 +45,7 @@ function createComputed(fn, options) {
   let disposed = false
 
   const observer = {
+    id: `computed-${source.id}`,
     kind: 'computed',
     dependencies,
     _notify() {
@@ -153,6 +154,7 @@ function createComputed(fn, options) {
     removeDependencies()
     source.subscribers.clear()
     source.listeners.clear()
+    disposeSource(source)
   }
 
   api.dispose = dispose

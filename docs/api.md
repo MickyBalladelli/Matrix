@@ -189,7 +189,7 @@ These surfaces may change before 1.0:
 - Router `search`, `hash`, `base`, redirects, and async guards.
 - Plugin extension points.
 - `defaultTokens`, `tokens`, `theme`, and `utilityCss`.
-- Debug helpers: `createLogger`, `watchDebug`, `inspect`, `inspectEffects`, and `setDevtoolsHook`.
+- Debug helpers: `createLogger`, `watchDebug`, `inspect`, `inspectComponents`, `inspectSources`, `inspectEffects`, `inspectRouters`, `createPerformanceTimeline`, `createDevtools`, and `setDevtoolsHook`.
 
 Stable for this alpha: `signal`, `computed`, `effect`, `batch`, `html`, `component`, `mount`, `css`, `cssVariables`, and `keyed`.
 
@@ -247,7 +247,7 @@ Hooks are synchronous and run on the application update path. Keep them cheap an
 - `routerView(router, fallback)` turns the current route into a view.
 - `createForm(initialValues, validators, options)` provides fields, values, errors, valid, validate, validateField, inspectField, inspect and reset.
 - `resource(loader, options)` provides status, data, error, loading, reload and dispose.
-- `createLogger`, `watchDebug`, `inspect`, `inspectEffects` and `setDevtoolsHook` support debugging.
+- `createLogger`, `watchDebug`, `inspect`, the DevTools inspectors, `createPerformanceTimeline`, and `setDevtoolsHook` support debugging.
 
 ### Router guard and redirect example
 

@@ -144,6 +144,7 @@ Developer guides:
 - `createRouter` and `routerView` provide minimal History API navigation.
 - `createForm` and `resource` cover common needs without entering the core.
 - `usePlugin` observes the renderer, scheduler, logs and styles.
+- `createDevtools` exposes local component, reactive graph, router and performance inspection.
 
 ## DOM directives
 

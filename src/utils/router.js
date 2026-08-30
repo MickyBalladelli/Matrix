@@ -5,6 +5,9 @@ import { getCurrentRenderState, runWithRenderState } from '../reactivity/context
 import { isDevelopment } from '../config.js'
 import { warnDevelopment } from './development.js'
 
+let nextRouterId = 1
+const activeRouters = new Set()
+
 function normalizePath(path) {
   const value = String(path || '/')
   const withoutHash = value.split('#')[0]
@@ -261,6 +264,7 @@ function createRouterState(routeDefinitions, options) {
     path.dispose?.()
     search.dispose?.()
     hash.dispose?.()
+    activeRouters.delete(router)
   }
 
   async function navigate(nextPath, navigationOptions = {}) {
@@ -384,7 +388,9 @@ function createRouterState(routeDefinitions, options) {
     // A router can also live outside a component scope.
   }
 
-  return {
+  const router = {
+    _debugId: `router-${nextRouterId++}`,
+    _debugStarted: () => started,
     path,
     search,
     hash,
@@ -396,6 +402,13 @@ function createRouterState(routeDefinitions, options) {
     navigate,
     link
   }
+
+  activeRouters.add(router)
+  return router
+}
+
+export function getActiveRouters() {
+  return [...activeRouters]
 }
 
 export function routerView(router, fallback = null) {

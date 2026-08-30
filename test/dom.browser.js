@@ -2,6 +2,7 @@ import {
   component,
   computed,
   configure,
+  createDevtools,
   css,
   cssVariables,
   createForm,
@@ -30,6 +31,7 @@ const assert = (condition, message) => {
 
 const host = document.createElement('div')
 document.body.append(host)
+const devtools = createDevtools({ globalName: null, redact: false })
 
 const count = signal(0)
 const doubled = computed(() => count.value * 2)
@@ -64,6 +66,8 @@ const input = host.querySelector('input')
 assert(button.textContent === '0', 'Le texte initial doit être rendu')
 assert(host.querySelector('output').textContent === '0', 'Le computed doit être rendu')
 assert(mounted, 'onMount doit être appelé')
+const componentTree = devtools.components()
+assert(componentTree.some(node => node.children.some(child => child.name === 'Child')), 'Les DevTools doivent exposer l’arbre des composants')
 
 const escaped = signal('<strong>unsafe</strong>')
 const escapeApp = mount(() => html`<p>${escaped}</p>`, host)
@@ -330,6 +334,7 @@ const router = createRouter([
   { path: '/matrix-user/:id', view: () => html`<p>user</p>` }
 ])
 router.start()
+assert(devtools.routers().some(item => item.started && item.routes.length === 2), 'Les DevTools doivent exposer l’état du routeur')
 assert(await router.navigate('/matrix-user/7?tab=profile#details'), 'Le routeur doit naviguer')
 assert(router.current.value.params.id === '7', 'Le routeur doit extraire les paramètres')
 assert(router.search.value === '?tab=profile' && router.hash.value === '#details', 'Router must preserve search and hash')
@@ -549,3 +554,4 @@ largeListApp.unmount()
 
 document.body.dataset.matrixTests = 'passed'
 window.__MATRIX_TEST_RESULT__ = 'passed'
+devtools.dispose()

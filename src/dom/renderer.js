@@ -267,14 +267,6 @@ function arrayState(values, parent, before, ownerScope) {
   }
 }
 
-function formatTextContent(value) {
-  if (value === true || value === false) {
-    return String(value)
-  }
-
-  return value
-}
-
 function renderDynamicValue(value, parent, before, ownerScope) {
   const bindingScope = createScope(ownerScope)
   const ownerComponent = getCurrentComponent()
@@ -352,7 +344,7 @@ function renderDynamicValue(value, parent, before, ownerScope) {
     bindingScope.run(() => {
       if (isReactiveValue(value)) {
         effect(() => {
-          const nextValue = formatTextContent(value.value)
+          const nextValue = value.value
           replace(nextValue)
           emitDebugEvent({ type: 'dom:update', kind: 'content', parent, source: value })
         }, {
@@ -360,7 +352,7 @@ function renderDynamicValue(value, parent, before, ownerScope) {
           warnOnDependencyChange: false
         })
       } else {
-        replace(formatTextContent(value))
+        replace(value)
       }
     })
   } catch (error) {

@@ -157,6 +157,11 @@ for (const unsafeUrl of [
   assert(host.childNodes.length === 0, 'Rejected URL properties must roll back partial DOM')
 }
 
+const safeImageDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+const safeImageApp = mount(() => html`<img data-safe-image src=${safeImageDataUrl} alt="safe">`, host)
+assert(host.querySelector('[data-safe-image]')?.getAttribute('src') === safeImageDataUrl, 'Safe image data URLs must be allowed on src')
+safeImageApp.unmount()
+
 const redStyle = css`.security-probe { color: rgb(255, 0, 0); }`
 const blueStyle = css`.security-probe { color: rgb(0, 0, 255); }`
 const styleApp = mount(() => html`

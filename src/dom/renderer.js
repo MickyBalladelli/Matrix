@@ -173,6 +173,8 @@ function disposeQuietly(state) {
   }
 }
 
+const SAFE_DATA_IMAGE_URL = /^data:image\/(png|jpe?g|gif|webp|avif|bmp);base64,/i
+
 function assertSafeUrl(name, value) {
   if (!URL_ATTRIBUTES.has(name.toLowerCase()) || typeof value !== 'string') {
     return
@@ -183,7 +185,11 @@ function assertSafeUrl(name, value) {
     ? ''
     : value.slice(0, schemeEnd).replace(/[\u0000-\u0020\u007f]+/g, '').toLowerCase()
 
-  if (scheme === 'javascript' || scheme === 'vbscript' || scheme === 'data') {
+  if (scheme === 'javascript' || scheme === 'vbscript') {
+    throw new Error(`Unsafe dynamic URL rejected for attribute ${name}`)
+  }
+
+  if (scheme === 'data' && !SAFE_DATA_IMAGE_URL.test(value.trim())) {
     throw new Error(`Unsafe dynamic URL rejected for attribute ${name}`)
   }
 }
